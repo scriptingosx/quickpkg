@@ -1,25 +1,66 @@
 #!/usr/bin/python
 
+import argparse
+import string
 import os
 
+
+import jss
+
+casperimport_version = '0b1'
+supported_extensions = ['pkg']
 
 # casperimport
 
 # modeled after munkiimport but for casper
 
-# takes a path as input
+if __name__ == "__main__":
+    # for convenience link to argparse tutorial:
+    # https://docs.python.org/2/howto/argparse.html#id1
+    parser = argparse.ArgumentParser(description="Imports an installer item into Casper.",
+                                     epilog="""Installer item can be a pkg, mpkg, dmg, or app.
 
-# if path is a pkg -> upload
+        Example:
+        casperimport /path/to/installer_item""", formatter_class=argparse.RawTextHelpFormatter)
 
-# if path is an .app -> pkg build -> upload
+    parser.add_argument('--version', help='prints the version', action='version', version=casperimport_version)
 
-# if path is a dmg -> mount and act on contents
+    # takes a path as input
+    parser.add_argument('item_path', help="path to the installer item")
 
-# upload to jss
+    args = parser.parse_args()
 
-# mount server if necessary
+    # remove trailing '/' from path
+    item_path = string.rstrip(args.item_path, '/')
 
-# copy pkg to caspershare/Packages
+    # get file extension
+    (item_basename, item_extension) = os.path.splitext(item_path)
+    item_extension = string.lstrip(item_extension, '.')
+    
+    # is extension supported
+    if not item_extension in supported_extensions:
+        print ".%s is not a supported extension!" % item_extension
+        exit(1)
+    
+    # if path is a pkg
+        
+        # extract version
 
-# create Package object with JSS API
+    # if path is an .app
+        
+        # extract version
+        
+        # pkgbuild
+
+    # if path is a dmg -> mount and act on contents
+
+    # upload to jss
+    
+    # if item is a directory, zip it
+    
+    # see if item already exists
+    
+    # copy pkg to caspershare/Packages
+
+    # create Package object with JSS API
 
