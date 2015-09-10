@@ -7,7 +7,7 @@ import os
 
 import jss
 
-casperimport_version = '0b1'
+casperimport_version = '0.0'
 supported_extensions = ['pkg']
 
 # casperimport
@@ -42,6 +42,16 @@ if __name__ == "__main__":
         print ".%s is not a supported extension!" % item_extension
         exit(1)
     
+    # if item is a dmg, mount it and find useful contents
+    
+    # extract version and other metadata
+    
+    # if item is a bundle try to find Info.plist
+    
+    # if item is a flat package, expand into tmp and get version
+    
+    # try to extract version from file name
+    
     # if path is a pkg
         
         # extract version
@@ -51,8 +61,6 @@ if __name__ == "__main__":
         # extract version
         
         # pkgbuild
-
-    # if path is a dmg -> mount and act on contents
 
     # upload to jss
     
