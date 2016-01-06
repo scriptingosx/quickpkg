@@ -5,25 +5,24 @@ import string
 import os
 
 
-import jss
 
-casperimport_version = '0.0'
-supported_extensions = ['pkg']
+quickpkg_version = '0.0'
+supported_extensions = ['dmg', 'app']
 
-# casperimport
+# quickpkg
 
-# modeled after munkiimport but for casper
+# modeled after munkiimport but to build a pkg
 
 if __name__ == "__main__":
     # for convenience link to argparse tutorial:
     # https://docs.python.org/2/howto/argparse.html#id1
-    parser = argparse.ArgumentParser(description="Imports an installer item into Casper.",
-                                     epilog="""Installer item can be a pkg, mpkg, dmg, or app.
+    parser = argparse.ArgumentParser(description="Attempts to build a pkg from the input.",
+                                     epilog="""Installer item can be a dmg, or app.
 
         Example:
-        casperimport /path/to/installer_item""", formatter_class=argparse.RawTextHelpFormatter)
+        quickpkg /path/to/installer_item""", formatter_class=argparse.RawTextHelpFormatter)
 
-    parser.add_argument('--version', help='prints the version', action='version', version=casperimport_version)
+    parser.add_argument('--version', help='prints the version', action='version', version=quickpkg_version)
 
     # takes a path as input
     parser.add_argument('item_path', help="path to the installer item")
@@ -43,32 +42,9 @@ if __name__ == "__main__":
         exit(1)
     
     # if item is a dmg, mount it and find useful contents
-    
+        
     # extract version and other metadata
     
-    # if item is a bundle try to find Info.plist
+    # run pkgutil to build result
     
-    # if item is a flat package, expand into tmp and get version
-    
-    # try to extract version from file name
-    
-    # if path is a pkg
-        
-        # extract version
-
-    # if path is an .app
-        
-        # extract version
-        
-        # pkgbuild
-
-    # upload to jss
-    
-    # if item is a directory, zip it
-    
-    # see if item already exists
-    
-    # copy pkg to caspershare/Packages
-
-    # create Package object with JSS API
-
+   
