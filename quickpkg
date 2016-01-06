@@ -13,6 +13,67 @@ supported_extensions = ['dmg', 'app']
 
 # modeled after munkiimport but to build a pkg
 
+
+def logger(log, v=0):
+    if args.verbosity >= v:
+        print log
+
+def cmdexec(command):
+    """Execute a command."""
+    # if 'command' is a string, split the string into components
+    if isinstance(command, str):
+        command = command.split()
+
+    proc = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    (stdout, stderr) = proc.communicate()
+
+    logger("cmdexec: %s, result: %s, error: %s" % (command, stdout, stderr), 3)
+
+    # strip trailing whitespace, which would mess with string comparisons
+    return {"return_code": proc.returncode, "stderr": stderr.rstrip(), "stdout": stdout.rstrip()}
+
+def attachdmg(dmgpath):
+	
+	#command to run
+	#hdiutil attach ~/Downloads/BBEdit_11.1.4.dmg -mountrandom /tmp -plist -nobrowse
+	
+	# returns 
+	#<?xml version="1.0" encoding="UTF-8"?>
+	#<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+	#<plist version="1.0">
+	#<dict>
+	#	<key>system-entities</key>
+	#	<array>
+	#		<dict>
+	#			<key>content-hint</key>
+	#			<string>Apple_HFS</string>
+	#			<key>dev-entry</key>
+	#			<string>/dev/disk4s1</string>
+	#			<key>mount-point</key>
+	#			<string>/private/tmp/dmg.6fzBvH</string>
+	#			<key>potentially-mountable</key>
+	#			<true/>
+	#			<key>unmapped-content-hint</key>
+	#			<string>48465300-0000-11AA-AA11-00306543ECAC</string>
+	#			<key>volume-kind</key>
+	#			<string>hfs</string>
+	#		</dict>
+	#		<dict>
+	#			<key>content-hint</key>
+	#			<string>GUID_partition_scheme</string>
+	#			<key>dev-entry</key>
+	#			<string>/dev/disk4</string>
+	#			<key>potentially-mountable</key>
+	#			<false/>
+	#			<key>unmapped-content-hint</key>
+	#			<string>GUID_partition_scheme</string>
+	#		</dict>
+	#	</array>
+	#</dict>
+	#</plist>
+
+	
+
 if __name__ == "__main__":
     # for convenience link to argparse tutorial:
     # https://docs.python.org/2/howto/argparse.html#id1
@@ -26,6 +87,8 @@ if __name__ == "__main__":
 
     # takes a path as input
     parser.add_argument('item_path', help="path to the installer item")
+
+    parser.add_argument("-v", "--verbosity", action="count", default=0, help="controls amount of logging output (max -vvv)")
 
     args = parser.parse_args()
 
