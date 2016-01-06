@@ -3,7 +3,7 @@
 import argparse
 import string
 import os
-
+import subprocess
 
 
 quickpkg_version = '0.0'
@@ -17,6 +17,7 @@ supported_extensions = ['dmg', 'app']
 def logger(log, v=0):
     if args.verbosity >= v:
         print log
+
 
 def cmdexec(command):
     """Execute a command."""
@@ -32,47 +33,49 @@ def cmdexec(command):
     # strip trailing whitespace, which would mess with string comparisons
     return {"return_code": proc.returncode, "stderr": stderr.rstrip(), "stdout": stdout.rstrip()}
 
-def attachdmg(dmgpath):
-	
-	#command to run
-	#hdiutil attach ~/Downloads/BBEdit_11.1.4.dmg -mountrandom /tmp -plist -nobrowse
-	
-	# returns 
-	#<?xml version="1.0" encoding="UTF-8"?>
-	#<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-	#<plist version="1.0">
-	#<dict>
-	#	<key>system-entities</key>
-	#	<array>
-	#		<dict>
-	#			<key>content-hint</key>
-	#			<string>Apple_HFS</string>
-	#			<key>dev-entry</key>
-	#			<string>/dev/disk4s1</string>
-	#			<key>mount-point</key>
-	#			<string>/private/tmp/dmg.6fzBvH</string>
-	#			<key>potentially-mountable</key>
-	#			<true/>
-	#			<key>unmapped-content-hint</key>
-	#			<string>48465300-0000-11AA-AA11-00306543ECAC</string>
-	#			<key>volume-kind</key>
-	#			<string>hfs</string>
-	#		</dict>
-	#		<dict>
-	#			<key>content-hint</key>
-	#			<string>GUID_partition_scheme</string>
-	#			<key>dev-entry</key>
-	#			<string>/dev/disk4</string>
-	#			<key>potentially-mountable</key>
-	#			<false/>
-	#			<key>unmapped-content-hint</key>
-	#			<string>GUID_partition_scheme</string>
-	#		</dict>
-	#	</array>
-	#</dict>
-	#</plist>
 
-	
+def attachdmg(dmgpath):
+    return
+
+
+# command to run
+# hdiutil attach ~/Downloads/BBEdit_11.1.4.dmg -mountrandom /tmp -plist -nobrowse
+#
+# returns
+# <?xml version="1.0" encoding="UTF-8"?>
+# <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+# <plist version="1.0">
+# <dict>
+#   <key>system-entities</key>
+#   <array>
+#       <dict>
+#           <key>content-hint</key>
+#           <string>Apple_HFS</string>
+#           <key>dev-entry</key>
+#           <string>/dev/disk4s1</string>
+#           <key>mount-point</key>
+#           <string>/private/tmp/dmg.6fzBvH</string>
+#           <key>potentially-mountable</key>
+#           <true/>
+#           <key>unmapped-content-hint</key>
+#           <string>48465300-0000-11AA-AA11-00306543ECAC</string>
+#           <key>volume-kind</key>
+#           <string>hfs</string>
+#       </dict>
+#       <dict>
+#           <key>content-hint</key>
+#           <string>GUID_partition_scheme</string>
+#           <key>dev-entry</key>
+#           <string>/dev/disk4</string>
+#           <key>potentially-mountable</key>
+#           <false/>
+#           <key>unmapped-content-hint</key>
+#           <string>GUID_partition_scheme</string>
+#       </dict>
+#   </array>
+# </dict>
+# </plist>
+
 
 if __name__ == "__main__":
     # for convenience link to argparse tutorial:
@@ -98,16 +101,14 @@ if __name__ == "__main__":
     # get file extension
     (item_basename, item_extension) = os.path.splitext(item_path)
     item_extension = string.lstrip(item_extension, '.')
-    
+
     # is extension supported
-    if not item_extension in supported_extensions:
+    if item_extension not in supported_extensions:
         print ".%s is not a supported extension!" % item_extension
         exit(1)
-    
+
     # if item is a dmg, mount it and find useful contents
-        
+
     # extract version and other metadata
-    
+
     # run pkgutil to build result
-    
-   
