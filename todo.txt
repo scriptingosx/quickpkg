@@ -3,3 +3,7 @@
 - look into and decompress zip files
 - build packages from filelists
 - use file lists from composer files
+- identify app just by name or id
+- identify shell scripts and build a payload free package
+- identify mobileconfigs and build a package installer
+- check if disk image was previously mounted before unmounting
