@@ -4,6 +4,7 @@ import argparse
 import string
 import os
 import subprocess
+import plistlib
 
 
 quickpkg_version = '0.0'
@@ -34,48 +35,74 @@ def cmdexec(command):
     return {"return_code": proc.returncode, "stderr": stderr.rstrip(), "stdout": stdout.rstrip()}
 
 
+# stolen from munkicommons.py
+def getFirstPlist(textString):
+    """Gets the next plist from a text string that may contain one or
+    more text-style plists.
+    Returns a tuple - the first plist (if any) and the remaining
+    string after the plist"""
+    plist_header = '<?xml version'
+    plist_footer = '</plist>'
+    plist_start_index = textString.find(plist_header)
+    if plist_start_index == -1:
+        # not found
+        return ("", textString)
+    plist_end_index = textString.find(
+        plist_footer, plist_start_index + len(plist_header))
+    if plist_end_index == -1:
+        # not found
+        return ("", textString)
+    # adjust end value
+    plist_end_index = plist_end_index + len(plist_footer)
+    return (textString[plist_start_index:plist_end_index],
+            textString[plist_end_index:])
+
+
 def attachdmg(dmgpath):
-    return
+    attachcmd = ["/usr/bin/hdiutil",
+                 "attach",
+                 dmgpath,
+                 "-mountrandom",
+                 "/private/tmp",
+                 "-plist",
+                 "-nobrowse"]
+    result = cmdexec(attachcmd)
+    if result["return_code"] == 0:
+        # parse the plist output
+        (theplist, alltext) = getFirstPlist(result["stdout"])
+        resultdict = plistlib.readPlistFromString(theplist)
+        volpaths = []
+        for x in resultdict["system-entities"]:
+            if x["potentially-mountable"]:
+                if x["volume-kind"] == 'hfs':
+                    volpaths.append(x["mount-point"])
+        # return the paths to mounted volume
+        return volpaths
+    else:
+        print "error mounting disk image"
+        print "(%d, %s)" % (result["returncode"], result["stderr"])
+        exit(1)
 
 
-# command to run
-# hdiutil attach ~/Downloads/BBEdit_11.1.4.dmg -mountrandom /tmp -plist -nobrowse
-#
-# returns
-# <?xml version="1.0" encoding="UTF-8"?>
-# <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-# <plist version="1.0">
-# <dict>
-#   <key>system-entities</key>
-#   <array>
-#       <dict>
-#           <key>content-hint</key>
-#           <string>Apple_HFS</string>
-#           <key>dev-entry</key>
-#           <string>/dev/disk4s1</string>
-#           <key>mount-point</key>
-#           <string>/private/tmp/dmg.6fzBvH</string>
-#           <key>potentially-mountable</key>
-#           <true/>
-#           <key>unmapped-content-hint</key>
-#           <string>48465300-0000-11AA-AA11-00306543ECAC</string>
-#           <key>volume-kind</key>
-#           <string>hfs</string>
-#       </dict>
-#       <dict>
-#           <key>content-hint</key>
-#           <string>GUID_partition_scheme</string>
-#           <key>dev-entry</key>
-#           <string>/dev/disk4</string>
-#           <key>potentially-mountable</key>
-#           <false/>
-#           <key>unmapped-content-hint</key>
-#           <string>GUID_partition_scheme</string>
-#       </dict>
-#   </array>
-# </dict>
-# </plist>
+def detachpaths(volpaths):
+    for x in volpaths:
+        if os.path.exists(x):
+            if os.path.ismount(x):
+                detachcmd = ["/usr/bin/hdiutil", "detach", x]
+                cmdexec(detachcmd)
 
+def finditemswithextension(dirpath, item_extension):
+    foundapps = []
+    if os.path.exists(dirpath):
+        for x in os.listdir(dirpath):
+            (item_basename, item_extension) = os.path.splitext(x)
+            item_extension = string.lstrip(item_extension, '.')
+            if item_extension == 'app':
+                foundapps.append(os.path.join(dirpath, x))
+    else:
+        print "path %s does not exist" % dirpath
+        exit(1)
+    return foundapps
 
 if __name__ == "__main__":
     # for convenience link to argparse tutorial:
@@ -107,8 +134,38 @@ if __name__ == "__main__":
         print ".%s is not a supported extension!" % item_extension
         exit(1)
 
+    # if item is an app, just pass it on
+    if item_extension == 'app':
+        if not os.path.exists(item_path):
+            print "This does not seem to be an Application!"
+            exit(1)
+
+        app_path = item_path
+
+    dmgvolumepaths = []
+
     # if item is a dmg, mount it and find useful contents
+    if item_extension == 'dmg':
+        dmgvolumepaths = attachdmg(item_path)
+        foundapps = []
+        for x in dmgvolumepaths:
+            moreapps = finditemswithextension(x, 'app')
+            foundapps.extend(moreapps)
+        if len(foundapps) == 0:
+            print "Could not find an application!"
+            detachpaths(dmgvolumepaths)
+            exit(1)
+        elif len(foundapps) > 1:
+            print "Found too many Applications! Can't decide!"
+            print foundapps
+            detachpaths(dmgvolumepaths)
+            exit(1)
+        
+        app_path = foundapps[0]
 
     # extract version and other metadata
-
+    print app_path
+    
     # run pkgutil to build result
+    detachpaths(dmgvolumepaths)
+
