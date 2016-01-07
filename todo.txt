@@ -1,4 +1,5 @@
 - deal with agreements in dmgs (Evernote has one)
 - add option to add scripts
+- look into and decompress zip files
 - build packages from filelists
 - use file lists from composer files
