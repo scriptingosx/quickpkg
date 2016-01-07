@@ -91,6 +91,7 @@ def detachpaths(volpaths):
                 detachcmd = ["/usr/bin/hdiutil", "detach", x]
                 cmdexec(detachcmd)
 
+
 def finditemswithextension(dirpath, item_extension):
     foundapps = []
     if os.path.exists(dirpath):
@@ -103,6 +104,22 @@ def finditemswithextension(dirpath, item_extension):
         print "path %s does not exist" % dirpath
         exit(1)
     return foundapps
+
+
+def appNameAndVersion(app_path):
+    info_path = os.path.join(app_path, "Contents/Info.plist")
+    if not os.path.exists(info_path):
+        print "Application at path %s does not have Info.plist" % app_path
+        # TODO: cleanup volumes here
+        exit(1)
+    info_plist = plistlib.readPlist(info_path)
+    app_name = info_plist.get("CFBundleName", None)
+    app_identifier = info_plist.get("CFBundleIdentifier", None)
+    app_version = info_plist.get("CFBundleShortVersionString", None)
+    if app_version == None:
+        app_version = info_plist.get("CFBundleVersion", None)
+    return (app_name, app_identifier, app_version)
+
 
 if __name__ == "__main__":
     # for convenience link to argparse tutorial:
@@ -163,9 +180,28 @@ if __name__ == "__main__":
         
         app_path = foundapps[0]
 
-    # extract version and other metadata
-    print app_path
+    logger("Found application: %s" % app_path, 1)
     
+    # extract version and other metadata
+    (app_name, app_identifier, app_version) = appNameAndVersion(app_path)
+
+    logger("Name: %s, ID: %s, Version: %s" %(app_name, app_identifier, app_version))
+
+    pkg_name = "${app_name}-${app_version}.pkg"
+
+    pkgcmd = ["/usr/bin/pkgbuild",
+              "--component", app_path,
+              "--identifier", app_identifier,
+              "--version", app_version,
+              "--install-location", "/Applications",
+              pkg_name]
+    result = cmdexec(pkgcmd)
+
+    print result["stdout"]
+    if result["return_code"] != 0:
+        print "Error Code: " + result["return_code"]
+        print result["stderr"]
+
     # run pkgutil to build result
     detachpaths(dmgvolumepaths)
 
