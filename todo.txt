@@ -1,15 +1,16 @@
 - deal with agreements in dmgs (Evernote has one)
 - deal with already mounted dmgs
+- use some preference setting to determine package name syntax
 - add option to add scripts
 √ look into and decompress zip files
-- support for tar, gzip and bzip
 - build packages from filelists
 - use file lists from composer files
-- identify app just by name or id
+- add option to build a munki-pkg project folder rather than build a package
+- signature support
 - identify shell scripts and build a payload free package
 - identify mobileconfigs and build a package installer
-- signature support
 - other possible file formats: fonts, prefpanes, Safari extensions?
-- use some preference setting to determine package name syntax
-- add option to build a munki-pkg project folder rather than build a package
 √ remove spaces from pkg_name
+- support the --ownership flag
+- support for tar, gzip and bzip
+- identify app just by name or id (could use: mdfind "kMDItemKind == 'Application' && kMDItemDisplayName == 'iTunes'")

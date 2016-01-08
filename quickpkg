@@ -9,7 +9,7 @@ import tempfile
 import shutil
 
 
-quickpkg_version = '0.0'
+quickpkg_version = '0.1'
 supported_extensions = ['dmg', 'app', 'zip']
 
 # quickpkg
@@ -118,16 +118,17 @@ def appNameAndVersion(app_path):
     app_name = info_plist.get("CFBundleName", None)
     app_identifier = info_plist.get("CFBundleIdentifier", None)
     app_version = info_plist.get("CFBundleShortVersionString", None)
-    if app_version == None:
+    if app_version is None:
         app_version = info_plist.get("CFBundleVersion", None)
     return (app_name, app_identifier, app_version)
 
 
 if __name__ == "__main__":
+
     # for convenience link to argparse tutorial:
     # https://docs.python.org/2/howto/argparse.html#id1
     parser = argparse.ArgumentParser(description="Attempts to build a pkg from the input.",
-                                     epilog="""Installer item can be a dmg, or app.
+                                     epilog="""Installer item can be a dmg, zip, or app.
 
         Example:
         quickpkg /path/to/installer_item""", formatter_class=argparse.RawTextHelpFormatter)
@@ -162,6 +163,7 @@ if __name__ == "__main__":
         app_path = item_path
 
     dmgvolumepaths = []
+    tmp_path = None
 
     # if item is a dmg, mount it and find useful contents
     if item_extension == 'dmg':
@@ -179,7 +181,7 @@ if __name__ == "__main__":
             print foundapps
             detachpaths(dmgvolumepaths)
             exit(1)
-        
+
         app_path = foundapps[0]
 
     # if item is zip, unzip to tmp location and find useful contents
@@ -201,19 +203,19 @@ if __name__ == "__main__":
             print foundapps
             shutil.rmtree(tmp_path)
             exit(1)
-        
+
         app_path = foundapps[0]
 
     logger("Found application: %s" % app_path, 1)
-    
+
     # extract version and other metadata
     (app_name, app_identifier, app_version) = appNameAndVersion(app_path)
 
-    logger("Name: %s, ID: %s, Version: %s" %(app_name, app_identifier, app_version))
+    logger("Name: %s, ID: %s, Version: %s" % (app_name, app_identifier, app_version))
 
     # TODO: get name syntax from prefs or parameter
     pkg_name = "{name}-{version}.pkg".format(name=app_name, version=app_version, identifier=app_identifier)
-    pkg_name = pkgname.replace(' ', '') # remove spaces
+    pkg_name = pkg_name.replace(' ', '')  # remove spaces
     # run pkgutil to build result
 
     pkgcmd = ["/usr/bin/pkgbuild",
@@ -232,4 +234,5 @@ if __name__ == "__main__":
         print pkg_name
 
     detachpaths(dmgvolumepaths)
-
+    if tmp_path is not None:
+        shutil.rmtree(tmp_path)
