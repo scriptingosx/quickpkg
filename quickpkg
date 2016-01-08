@@ -5,10 +5,12 @@ import string
 import os
 import subprocess
 import plistlib
+import tempfile
+import shutil
 
 
 quickpkg_version = '0.0'
-supported_extensions = ['dmg', 'app']
+supported_extensions = ['dmg', 'app', 'zip']
 
 # quickpkg
 
@@ -180,6 +182,28 @@ if __name__ == "__main__":
         
         app_path = foundapps[0]
 
+    # if item is zip, unzip to tmp location and find useful contents
+    if item_extension == 'zip':
+        tmp_path = tempfile.mkdtemp()
+        unzip_cmd = ["/usr/bin/unzip", "-d", tmp_path, item_path]
+        result = cmdexec(unzip_cmd)
+        if result["return_code"] != 0:
+            print "An error occured while unzipping:"
+            print "%d, %s" % (result["return_code"], result["stderr"])
+            exit(1)
+        foundapps = finditemswithextension(tmp_path, 'app')
+        if len(foundapps) == 0:
+            print "Could not find an application!"
+            shutil.rmtree(tmp_path)
+            exit(1)
+        elif len(foundapps) > 1:
+            print "Found too many Applications! Can't decide!"
+            print foundapps
+            shutil.rmtree(tmp_path)
+            exit(1)
+        
+        app_path = foundapps[0]
+
     logger("Found application: %s" % app_path, 1)
     
     # extract version and other metadata
@@ -187,7 +211,10 @@ if __name__ == "__main__":
 
     logger("Name: %s, ID: %s, Version: %s" %(app_name, app_identifier, app_version))
 
+    # TODO: get name syntax from prefs or parameter
     pkg_name = "{name}-{version}.pkg".format(name=app_name, version=app_version, identifier=app_identifier)
+    pkg_name = pkgname.replace(' ', '') # remove spaces
+    # run pkgutil to build result
 
     pkgcmd = ["/usr/bin/pkgbuild",
               "--component", app_path,
@@ -197,11 +224,12 @@ if __name__ == "__main__":
               pkg_name]
     result = cmdexec(pkgcmd)
 
-    print result["stdout"]
+    logger(result["stdout"], 1)
     if result["return_code"] != 0:
-        print "Error Code: " + result["return_code"]
-        print result["stderr"]
+        logger("Error Code: " + result["return_code"], 1)
+        logger(result["stderr"], 1)
+    else:
+        print pkg_name
 
-    # run pkgutil to build result
     detachpaths(dmgvolumepaths)
 

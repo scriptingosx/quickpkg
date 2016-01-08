@@ -1,14 +1,15 @@
 - deal with agreements in dmgs (Evernote has one)
 - deal with already mounted dmgs
 - add option to add scripts
-- look into and decompress zip files (do I need tar?)
+√ look into and decompress zip files
+- support for tar, gzip and bzip
 - build packages from filelists
 - use file lists from composer files
 - identify app just by name or id
 - identify shell scripts and build a payload free package
 - identify mobileconfigs and build a package installer
-- check if disk image was previously mounted before unmounting
 - signature support
 - other possible file formats: fonts, prefpanes, Safari extensions?
 - use some preference setting to determine package name syntax
 - add option to build a munki-pkg project folder rather than build a package
+√ remove spaces from pkg_name
