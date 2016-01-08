@@ -187,7 +187,7 @@ if __name__ == "__main__":
 
     logger("Name: %s, ID: %s, Version: %s" %(app_name, app_identifier, app_version))
 
-    pkg_name = "%s-%s.pkg" % (app_name, app_version)
+    pkg_name = "{name}-{version}.pkg".format(name=app_name, version=app_version, identifier=app_identifier)
 
     pkgcmd = ["/usr/bin/pkgbuild",
               "--component", app_path,
