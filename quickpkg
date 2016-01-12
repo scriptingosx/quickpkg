@@ -61,6 +61,28 @@ def getFirstPlist(textString):
 
 
 def attachdmg(dmgpath):
+    global dmg_was_mounted
+    info_cmd = ["hdiutil", "info", "-plist"]
+    info_result = cmdexec(info_cmd)
+    if info_result["return_code"] == 0:
+        # parse the plist output
+        (theplist, alltext) = getFirstPlist(info_result["stdout"])
+        info_dict = plistlib.readPlistFromString(theplist)
+        volpaths = []
+        if "images" in info_dict.keys():
+            for y in info_dict["images"]:
+                if "image-path" in y.keys():
+                    if os.path.samefile(y["image-path"], dmgpath):
+                        for x in y.get("system-entities"):
+                            if "mount-point" in x.keys():
+                                volpaths.append(x["mount-point"])
+                                dmg_was_mounted = True
+                        return volpaths
+    else:
+        print "error getting hdiutil info"
+        print "(%d, %s)" % (result["returncode"], result["stderr"])
+        cleanup_and_exit(1)
+
     attachcmd = ["/usr/bin/hdiutil",
                  "attach",
                  dmgpath,
@@ -83,7 +105,7 @@ def attachdmg(dmgpath):
     else:
         print "error mounting disk image"
         print "(%d, %s)" % (result["returncode"], result["stderr"])
-        exit(1)
+        cleanup_and_exit(1)
 
 
 def detachpaths(volpaths):
@@ -104,7 +126,7 @@ def finditemswithextension(dirpath, item_extension):
                 foundapps.append(os.path.join(dirpath, x))
     else:
         print "path %s does not exist" % dirpath
-        exit(1)
+        cleanup_and_exit(1)
     return foundapps
 
 
@@ -113,7 +135,7 @@ def appNameAndVersion(app_path):
     if not os.path.exists(info_path):
         print "Application at path %s does not have Info.plist" % app_path
         # TODO: cleanup volumes here
-        exit(1)
+        cleanup_and_exit(1)
     info_plist = plistlib.readPlist(info_path)
     app_name = info_plist.get("CFBundleName", None)
     app_identifier = info_plist.get("CFBundleIdentifier", None)
@@ -121,6 +143,18 @@ def appNameAndVersion(app_path):
     if app_version is None:
         app_version = info_plist.get("CFBundleVersion", None)
     return (app_name, app_identifier, app_version)
+
+
+def cleanup_and_exit(returncode):
+    global dmgvolumepaths
+    global dmg_was_mounted
+    global tmp_path
+
+    if not dmg_was_mounted:
+        detachpaths(dmgvolumepaths)
+    if tmp_path is not None:
+        shutil.rmtree(tmp_path)
+    exit(returncode)
 
 
 if __name__ == "__main__":
@@ -145,6 +179,10 @@ if __name__ == "__main__":
     # remove trailing '/' from path
     item_path = string.rstrip(args.item_path, '/')
 
+    if item_path.startswith('~'):
+        item_path = os.path.expanduser(item_path)
+    item_path = os.path.abspath(item_path)
+    
     # get file extension
     (item_basename, item_extension) = os.path.splitext(item_path)
     item_extension = string.lstrip(item_extension, '.')
@@ -164,6 +202,7 @@ if __name__ == "__main__":
 
     dmgvolumepaths = []
     tmp_path = None
+    dmg_was_mounted = False
 
     # if item is a dmg, mount it and find useful contents
     if item_extension == 'dmg':
@@ -174,13 +213,11 @@ if __name__ == "__main__":
             foundapps.extend(moreapps)
         if len(foundapps) == 0:
             print "Could not find an application!"
-            detachpaths(dmgvolumepaths)
-            exit(1)
+            cleanup_and_exit(1)
         elif len(foundapps) > 1:
             print "Found too many Applications! Can't decide!"
             print foundapps
-            detachpaths(dmgvolumepaths)
-            exit(1)
+            cleanup_and_exit(1)
 
         app_path = foundapps[0]
 
@@ -192,17 +229,15 @@ if __name__ == "__main__":
         if result["return_code"] != 0:
             print "An error occured while unzipping:"
             print "%d, %s" % (result["return_code"], result["stderr"])
-            exit(1)
+            cleanup_and_exit(1)
         foundapps = finditemswithextension(tmp_path, 'app')
         if len(foundapps) == 0:
             print "Could not find an application!"
-            shutil.rmtree(tmp_path)
-            exit(1)
+            cleanup_and_exit(1)
         elif len(foundapps) > 1:
             print "Found too many Applications! Can't decide!"
             print foundapps
-            shutil.rmtree(tmp_path)
-            exit(1)
+            cleanup_and_exit(1)
 
         app_path = foundapps[0]
 
@@ -228,11 +263,9 @@ if __name__ == "__main__":
 
     logger(result["stdout"], 1)
     if result["return_code"] != 0:
-        logger("Error Code: " + result["return_code"], 1)
-        logger(result["stderr"], 1)
+        print "Error Code: " + result["return_code"]
+        print result["stderr"]
     else:
         print pkg_name
 
-    detachpaths(dmgvolumepaths)
-    if tmp_path is not None:
-        shutil.rmtree(tmp_path)
+    cleanup_and_exit(0)
