@@ -95,7 +95,7 @@ def attachdmg(dmgpath):
                         return volpaths
     else:
         print "error getting hdiutil info"
-        print "(%d, %s)" % (result["returncode"], result["stderr"])
+        print "(%d, %s)" % (info_result["returncode"], info_result["stderr"])
         cleanup_and_exit(1)
 
     attachcmd = ["/usr/bin/hdiutil",
@@ -202,7 +202,7 @@ if __name__ == "__main__":
     if item_path.startswith('~'):
         item_path = os.path.expanduser(item_path)
     item_path = os.path.abspath(item_path)
-    
+
     # get file extension
     (item_basename, item_extension) = os.path.splitext(item_path)
     item_extension = string.lstrip(item_extension, '.')
