@@ -1,5 +1,5 @@
 √ deal with already mounted dmgs
-- deal with agreements in dmgs (Evernote has one)
+√ deal with agreements in dmgs (Evernote has one)
 - use some preference setting to determine package name syntax
 - add option to add scripts
 √ look into and decompress zip files

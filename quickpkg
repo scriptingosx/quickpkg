@@ -22,14 +22,14 @@ def logger(log, v=0):
         print log
 
 
-def cmdexec(command):
+def cmdexec(command, stdin=''):
     """Execute a command."""
     # if 'command' is a string, split the string into components
     if isinstance(command, str):
         command = command.split()
 
-    proc = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    (stdout, stderr) = proc.communicate()
+    proc = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.PIPE)
+    (stdout, stderr) = proc.communicate(stdin)
 
     logger("cmdexec: %s, result: %s, error: %s" % (command, stdout, stderr), 3)
 
@@ -37,7 +37,7 @@ def cmdexec(command):
     return {"return_code": proc.returncode, "stderr": stderr.rstrip(), "stdout": stdout.rstrip()}
 
 
-# stolen from munkicommons.py
+# from munkicommons.py
 def getFirstPlist(textString):
     """Gets the next plist from a text string that may contain one or
     more text-style plists.
@@ -58,6 +58,21 @@ def getFirstPlist(textString):
     plist_end_index = plist_end_index + len(plist_footer)
     return (textString[plist_start_index:plist_end_index],
             textString[plist_end_index:])
+
+
+def dmg_has_sla(dmgpath):
+    has_sla = False
+    imageinfo_cmd = ['/usr/bin/hdiutil', 'imageinfo', dmgpath, '-plist']
+    result = cmdexec(imageinfo_cmd)
+    if result["return_code"] != 0:
+        print "error getting imageinfo! %s, %s" % (result["return_code"], result["stderr"])
+        return False
+    result_plist = result["stdout"]
+    imageinfo_dict = plistlib.readPlistFromString(result_plist)
+    properties = imageinfo_dict.get('Properties')
+    if properties is not None:
+        has_sla = properties.get('Software License Agreement', False)
+    return has_sla
 
 
 def attachdmg(dmgpath):
@@ -90,7 +105,12 @@ def attachdmg(dmgpath):
                  "/private/tmp",
                  "-plist",
                  "-nobrowse"]
-    result = cmdexec(attachcmd)
+    if dmg_has_sla(dmgpath):
+        stdin = "Y\n"
+        print "NOTE: Disk image %s has a license agreement!" % dmgpath
+    else:
+        stdin = ''
+    result = cmdexec(attachcmd, stdin)
     if result["return_code"] == 0:
         # parse the plist output
         (theplist, alltext) = getFirstPlist(result["stdout"])
@@ -246,7 +266,7 @@ if __name__ == "__main__":
     # extract version and other metadata
     (app_name, app_identifier, app_version) = appNameAndVersion(app_path)
 
-    logger("Name: %s, ID: %s, Version: %s" % (app_name, app_identifier, app_version))
+    logger("Name: %s, ID: %s, Version: %s" % (app_name, app_identifier, app_version), 1)
 
     # TODO: get name syntax from prefs or parameter
     pkg_name = "{name}-{version}.pkg".format(name=app_name, version=app_version, identifier=app_identifier)
