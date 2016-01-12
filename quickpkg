@@ -9,7 +9,7 @@ import tempfile
 import shutil
 
 
-quickpkg_version = '0.1'
+quickpkg_version = '0.2'
 supported_extensions = ['dmg', 'app', 'zip']
 
 # quickpkg
