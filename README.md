@@ -1,5 +1,3 @@
-# `quickpkg`
-
 This tool will quickly and easily build a package from an installed application, a disk image file or zip archive with an enclosed application bundle. It will also extract the application name and version and use it to name the resulting `pkg` file. 
 
 The tool will look for applications on the first level of the disk image or archive. If it finds no or more than one application it will error.
@@ -44,7 +42,7 @@ pkgbuild --component /Volumes/Firefox/Firefox.app \
 
 This tool even does the work of determining a bundle's identifier and version and sets the identifier and version of the pkg to the same values.
 
-However, `pkgbuild` does not automatically name the package.
+However, while `pkgbuild` does automatically name the package, it does not include the version, which is important when you tracking many versions of the same application. It also doesn't automatically look into a `dmg` file or `zip` archive. 
 
 ## `quickpkg` vs `autopkg`
 
