@@ -1,3 +1,5 @@
+# `quickpkg` - Build packages quickly
+
 This tool will quickly and easily build a package from an installed application, a disk image file or zip archive with an enclosed application bundle. It will also extract the application name and version and use it to name the resulting `pkg` file. 
 
 The tool will look for applications on the first level of the disk image or archive. If it finds no or more than one application it will error.
@@ -50,6 +52,14 @@ This tool is not meant to replace [`autopkg`](https://github.com/autopkg/autopkg
 
 However, there are situations where `autopkg` does not work well. The most common reason is if the download cannot be automated because the download page is behind a paywall. Also `autopkg` requires a recipe for a given piece of software. If no recipe exists, `quickpkg` may be a simple alternative. (Though if `quickpkg` works, creating an `autopkg` recipe should not be hard.) 
 
+## `quickpkg` vs `munki-pkg`
+
+`quickpkg` is meant for 'quick' packaging. No configuration, no options. Download the application from the AppStore or the dmg or zip from the web and go. (I started working on it because I could never remember the exact options needed for `pkgbuild`.) [`munki-pkg`](https://github.com/munki/munki-pkg/) is a tool that makes it easier to access the complex options of `pkgbuild` and `packagebuild`, but it still supports complex projects. 
+
+If you prefer a UI rather than a command line tool, then use [Stephan Sudre's Packages](http://s.sudre.free.fr/Software/Packages/about.html).
+
 ## Warning
 
-All `quickpkg` does is identify an application bundle and package it in a way that the package will install that application bundle into the `/Applications` folder. If the application needs other files (libraries, frameworks, configuration files, license files, preferences etc.) to run and work they are your responsibility. 
+All `quickpkg` does is identify an application bundle and package it in a way that the package will install that application bundle into the `/Applications` folder. If the application needs other files (libraries, frameworks, configuration files, license files, preferences etc.) to run and work they are your responsibility.
+
+Also be sure to understand what you are running `quickpkg` against. If you run `quickpkg` on the disk image you get from DropBox or for the Adobe Flash Player, you will get a pkg that installs the DropBox or Flash Player installer in the `/Applications` folder. Probably not what you wanted.
