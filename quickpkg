@@ -157,11 +157,16 @@ def appNameAndVersion(app_path):
         # TODO: cleanup volumes here
         cleanup_and_exit(1)
     info_plist = plistlib.readPlist(info_path)
-    app_name = info_plist.get("CFBundleName", None)
-    app_identifier = info_plist.get("CFBundleIdentifier", None)
-    app_version = info_plist.get("CFBundleShortVersionString", None)
+    app_name = info_plist.get("CFBundleName")
+    if app_name is None:
+        app_name = info_plist.get("CFBundleDisplayName")
+        if app_name is None:
+            (app_name, app_ext) = os.path.splitext(os.path.basename(app_path))
+            #app_name = info_plist.get("CFBundleExecutable")
+    app_identifier = info_plist.get("CFBundleIdentifier")
+    app_version = info_plist.get("CFBundleShortVersionString")
     if app_version is None:
-        app_version = info_plist.get("CFBundleVersion", None)
+        app_version = info_plist.get("CFBundleVersion")
     return (app_name, app_identifier, app_version)
 
 

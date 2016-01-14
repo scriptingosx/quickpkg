@@ -56,7 +56,7 @@ However, there are situations where `autopkg` does not work well. The most commo
 
 `quickpkg` is meant for 'quick' packaging. No configuration, no options. Download the application from the AppStore or the dmg or zip from the web and go. (I started working on it because I could never remember the exact options needed for `pkgbuild`.) [`munki-pkg`](https://github.com/munki/munki-pkg/) is a tool that makes it easier to access the complex options of `pkgbuild` and `packagebuild`, but it still supports complex projects. 
 
-If you prefer a UI rather than a command line tool, then use [Stephan Sudre's Packages](http://s.sudre.free.fr/Software/Packages/about.html).
+If you prefer a UI rather than a command line tool, then use [Stéphane Sudre's Packages](http://s.sudre.free.fr/Software/Packages/about.html).
 
 ## Warning
 
