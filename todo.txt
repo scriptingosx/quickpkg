@@ -1,5 +1,5 @@
 - use some preference setting to determine package name syntax
-- add option to add scripts (--scripts, like the scripts folder)
+√ add option to add scripts (--scripts, like the scripts folder)
 - add option to add --preinstall script
 - add option for --postinstall script
 - support the --ownership flag
