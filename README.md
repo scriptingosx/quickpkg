@@ -26,6 +26,12 @@ Build package from a zip archive:
 quickpkg ~/Downloads/Things.zip
 ```
 
+## Options
+
+### `--scripts scripts_folder`:
+
+Pass a folder with scripts that are passed to `pkgbuild`'s `--scripts` option. If the there is a `preinstall` and/or `postinstall` script they will be run at the respective and can call other scripts in this folder.
+
 ## Background
 
 OS X has had the `pkgbuild` tool since Xcode 3.2 on Snow Leopard. With pkgbuild you can directly build a installer package from an application in the `/Applications` folder:

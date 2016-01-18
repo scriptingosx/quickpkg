@@ -184,20 +184,20 @@ def cleanup_and_exit(returncode):
 
 if __name__ == "__main__":
 
-    # for convenience link to argparse tutorial:
-    # https://docs.python.org/2/howto/argparse.html#id1
     parser = argparse.ArgumentParser(description="Attempts to build a pkg from the input.",
                                      epilog="""Installer item can be a dmg, zip, or app.
 
         Example:
         quickpkg /path/to/installer_item""", formatter_class=argparse.RawTextHelpFormatter)
 
-    parser.add_argument('--version', help='prints the version', action='version', version=quickpkg_version)
 
     # takes a path as input
     parser.add_argument('item_path', help="path to the installer item")
 
+    parser.add_argument('--scripts', help="path to a folder with scripts that will be passed to 'pkgbuild'")
+
     parser.add_argument("-v", "--verbosity", action="count", default=0, help="controls amount of logging output (max -vvv)")
+    parser.add_argument('--version', help='prints the version', action='version', version=quickpkg_version)
 
     args = parser.parse_args()
 
@@ -284,6 +284,10 @@ if __name__ == "__main__":
               "--version", app_version,
               "--install-location", "/Applications",
               pkg_name]
+
+    if args.scripts:
+        pkgcmd.extend(["--scripts", args.scripts])
+
     result = cmdexec(pkgcmd)
 
     logger(result["stdout"], 1)
