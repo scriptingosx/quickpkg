@@ -7,6 +7,7 @@ import subprocess
 import plistlib
 import tempfile
 import shutil
+import stat
 
 
 quickpkg_version = '0.3'
@@ -179,22 +180,29 @@ def cleanup_and_exit(returncode):
         detachpaths(dmgvolumepaths)
     if tmp_path is not None:
         shutil.rmtree(tmp_path)
+    if tmp_scripts_path is not None:
+        shutil.rmtree(tmp_scripts_path)
     exit(returncode)
 
 
 if __name__ == "__main__":
 
-    parser = argparse.ArgumentParser(description="Attempts to build a pkg from the input.",
-                                     epilog="""Installer item can be a dmg, zip, or app.
-
-        Example:
-        quickpkg /path/to/installer_item""", formatter_class=argparse.RawTextHelpFormatter)
+    parser = argparse.ArgumentParser(description="""Attempts to build a pkg from the input.
+                                                 Installer item can be a dmg, zip, or app.""",
+                                     epilog="""Example: quickpkg /path/to/installer_item""")
 
 
     # takes a path as input
     parser.add_argument('item_path', help="path to the installer item")
 
-    parser.add_argument('--scripts', help="path to a folder with scripts that will be passed to 'pkgbuild'")
+    scripts_group = parser.add_argument_group('Installation Scripts',
+        '''These options will set the installation scripts. You pass an entire folder of scripts, 
+        just like the option of `pkgbuild` or you can give a file for the preinstall or postinstall
+        scripts respectively. If you give both the --scripts and either one or both of --preinstall
+        and --postinstall, quickpkg will attempt to merge, but throw an error if it cannot.''')
+    scripts_group.add_argument('--scripts', help="path to a folder with scripts")
+    scripts_group.add_argument('--preinstall', help="path to the preinstall script")
+    scripts_group.add_argument('--postinstall', help="path to the postinstall script")
 
     parser.add_argument("-v", "--verbosity", action="count", default=0, help="controls amount of logging output (max -vvv)")
     parser.add_argument('--version', help='prints the version', action='version', version=quickpkg_version)
@@ -228,6 +236,7 @@ if __name__ == "__main__":
     dmgvolumepaths = []
     tmp_path = None
     dmg_was_mounted = False
+    tmp_scripts_path = None
 
     # if item is a dmg, mount it and find useful contents
     if item_extension == 'dmg':
@@ -285,14 +294,55 @@ if __name__ == "__main__":
               "--install-location", "/Applications",
               pkg_name]
 
-    if args.scripts:
+    if args.scripts and not os.path.exists(args.scripts):
+        print "scripts folder %s does not exist!" % args.scripts
+        cleanup_and_exit(1)
+    
+    if args.postinstall or args.preinstall:
+        tmp_scripts_path = tempfile.mkdtemp()
+        if args.scripts:
+            logger("copying %s to tmp scripts folder %s" % (args.scripts, tmp_scripts_path), 1)
+            shutil.rmtree(tmp_scripts_path)
+            shutil.copytree(args.scripts, tmp_scripts_path)
+        if args.postinstall:
+            if not os.path.exists(args.postinstall):
+                print "postinstall file %s does not exist!" % args.postinstall
+                cleanup_and_exit(1)
+            postinstall_path = os.path.join(tmp_scripts_path, "postinstall")
+            if os.path.exists(postinstall_path):
+                print "postinstall script already exists in %s" % args.scripts
+                cleanup_and_exit(1)
+            logger("copying %s to %s" % (args.postinstall, postinstall_path))
+            shutil.copy2(args.postinstall, postinstall_path)
+            os.chmod(postinstall_path, stat.S_IRUSR | stat.S_IWUSR | stat.S_IXUSR |
+                                       stat.S_IRGRP | stat.S_IXGRP |
+                                       stat.S_IROTH | stat.S_IXOTH)
+        if args.preinstall:
+            if not os.path.exists(args.preinstall):
+                print "preinstall file %s does not exist!" % args.preinstall
+                cleanup_and_exit(1)
+            preinstall_path = os.path.join(tmp_scripts_path, "preinstall")
+            if os.path.exists(preinstall_path):
+                print "preinstall script already exists in %s" % args.scripts
+                cleanup_and_exit(1)
+            logger("copying %s to %s" % (args.preinstall, preinstall_path))
+            shutil.copy2(args.preinstall, preinstall_path)
+            os.chmod(preinstall_path, stat.S_IRUSR | stat.S_IWUSR | stat.S_IXUSR |
+                                      stat.S_IRGRP | stat.S_IXGRP |
+                                      stat.S_IROTH | stat.S_IXOTH)
+
+    if tmp_scripts_path:
+        logger("scripts path: %s" % tmp_scripts_path)
+        pkgcmd.extend(["--scripts", tmp_scripts_path])
+    elif args.scripts:
+        logger("scripts path: %s" % args.scripts)
         pkgcmd.extend(["--scripts", args.scripts])
 
     result = cmdexec(pkgcmd)
 
     logger(result["stdout"], 1)
     if result["return_code"] != 0:
-        print "Error Code: " + result["return_code"]
+        print "Error Code: %d " % result["return_code"]
         print result["stderr"]
     else:
         print pkg_name
