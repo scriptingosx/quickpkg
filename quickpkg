@@ -163,7 +163,6 @@ def appNameAndVersion(app_path):
         app_name = info_plist.get("CFBundleDisplayName")
         if app_name is None:
             (app_name, app_ext) = os.path.splitext(os.path.basename(app_path))
-            #app_name = info_plist.get("CFBundleExecutable")
     app_identifier = info_plist.get("CFBundleIdentifier")
     app_version = info_plist.get("CFBundleShortVersionString")
     if app_version is None:
@@ -195,10 +194,10 @@ if __name__ == "__main__":
     parser.add_argument('item_path', help="path to the installer item")
 
     scripts_group = parser.add_argument_group('Installation Scripts',
-        '''These options will set the installation scripts. You pass an entire folder of scripts, 
-        just like the option of `pkgbuild` or you can give a file for the preinstall or postinstall
-        scripts respectively. If you give both the --scripts and either one or both of --preinstall
-        and --postinstall, quickpkg will attempt to merge, but throw an error if it cannot.''')
+        '''These options will set the installation scripts. You pass an entire folder of scripts,
+            just like the option of `pkgbuild` or you can give a file for the preinstall or postinstall
+            scripts respectively. If you give both the --scripts and either one or both of --preinstall
+            and --postinstall, quickpkg will attempt to merge, but throw an error if it cannot.''')
     scripts_group.add_argument('--scripts', help="path to a folder with scripts")
     scripts_group.add_argument('--preinstall', '--pre', help="path to the preinstall script")
     scripts_group.add_argument('--postinstall', '--post', help="path to the postinstall script")
@@ -207,9 +206,9 @@ if __name__ == "__main__":
                         help="will be passed through to pkgbuild")
     parser.add_argument('--output', '--out', '-o',
         help='''path where the package file will be created. If you give the full filename
-              then you can use '{name}', '{version}' and '{identifier}' as placeholders. 
-              If this is a directory, then the
-              package will be created with the default filename {name}-{version}.pkg''')
+                then you can use '{name}', '{version}' and '{identifier}' as placeholders.
+                If this is a directory, then the
+                package will be created with the default filename {name}-{version}.pkg''')
 
     parser.add_argument("-v", "--verbosity", action="count", default=0, help="controls amount of logging output (max -vvv)")
     parser.add_argument('--version', help='prints the version', action='version', version=quickpkg_version)
@@ -298,7 +297,7 @@ if __name__ == "__main__":
     else:
         pkg_path = pkg_name
     nospace_app_name = app_name.replace(' ', '')  # remove spaces
-    pkg_path= pkg_path.format(name=nospace_app_name, version=app_version, identifier=app_identifier)
+    pkg_path = pkg_path.format(name=nospace_app_name, version=app_version, identifier=app_identifier)
 
     if not pkg_path.endswith('pkg'):
         pkg_path += '.pkg'
@@ -314,7 +313,7 @@ if __name__ == "__main__":
     if args.scripts and not os.path.exists(args.scripts):
         print "scripts folder %s does not exist!" % args.scripts
         cleanup_and_exit(1)
-    
+
     if args.postinstall or args.preinstall:
         tmp_scripts_path = tempfile.mkdtemp()
         if args.scripts:
@@ -354,7 +353,7 @@ if __name__ == "__main__":
     elif args.scripts:
         logger("scripts path: %s" % args.scripts, 1)
         pkgcmd.extend(["--scripts", args.scripts])
-        
+
     if args.ownership:
         pkgcmd.extend(["--ownership", args.ownership])
 
