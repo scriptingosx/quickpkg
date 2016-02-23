@@ -1,12 +1,7 @@
 - use some preference setting to determine default package name syntax
-√ add option to add scripts (--scripts, like the scripts folder)
-√ add option to add --preinstall script
-√ add option for --postinstall script
-√ support the --ownership flag
-√ option to output pkg to a different dir than cwd
 - signature support
 - identify shell scripts and build a payload free package
-- identify mobileconfigs and build a package installer if make-profile-pkg is present
 - support for tar, gzip and bzip
 ? other possible file formats: fonts, prefpanes, Safari extensions?
 ? identify app just by name or id (could use: mdfind "kMDItemKind == 'Application' && kMDItemDisplayName == 'iTunes'")
+? identify mobileconfigs and build a package installer if make-profile-pkg is present
