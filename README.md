@@ -68,6 +68,10 @@ quickpkg /Applications/Numbers.app --output ~/Packages/{identifier}_{version}.pk
 
 will create `com.apple.Numbers_X.Y.Z.pkg` in `~/Packages`.
 
+### `--[no-]relocatable`
+
+Controls wether the resulting pkg file is relocatable, i.e. if the installer process will search for the bundle by bundle-identifier if it was moved to another location. By default  packages will be created NON-relocatable.
+
 ## Background
 
 OS X has had the `pkgbuild` tool since Xcode 3.2 on Snow Leopard. With pkgbuild you can directly build a installer package from an application in the `/Applications` folder:
