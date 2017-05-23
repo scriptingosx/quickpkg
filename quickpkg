@@ -386,13 +386,14 @@ if __name__ == "__main__":
         print ".%s is not a supported extension!" % item_extension
         exit(1)
 
+    foundapps = []
+
     # if item is an app, just pass it on
     if item_extension == 'app':
         if not os.path.exists(item_path):
             print "This does not seem to be an Application!"
             exit(1)
-
-        app_path = item_path
+        foundapps.append(item_path)
 
     dmgvolumepaths = []
     tmp_path = None
@@ -405,7 +406,6 @@ if __name__ == "__main__":
     # if item is a dmg, mount it and find useful contents
     if item_extension == 'dmg':
         dmgvolumepaths = attachdmg(item_path)
-        foundapps = []
         for x in dmgvolumepaths:
             moreapps = finditemswithextension(x, 'app')
             foundapps.extend(moreapps)
