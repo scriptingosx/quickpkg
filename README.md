@@ -72,6 +72,22 @@ will create `com.apple.Numbers_X.Y.Z.pkg` in `~/Packages`.
 
 Controls wether the resulting pkg file is relocatable, i.e. if the installer process will search for the bundle by bundle-identifier if it was moved to another location. By default  packages will be created NON-relocatable.
 
+## `--sign`, `--keychain` and `--cert`
+
+You can add these options to sign the resulting package. These three options are passed through to the `pkgbuild` command. Read the `pkgbuild` man page for details.
+
+Usually you can find the proper signing identity (from the Apple Developer account) with the command
+
+```
+$ security find-identity -p basic -v
+```
+
+and then you add the proper identity with the `--sign` option.
+
+```
+$ quickpkg ~/Downloads/Firefox\ 53.0.3.dmg --sign "3rd Party Mac Developer Installer: Your Name Here"
+```
+
 ## Background
 
 OS X has had the `pkgbuild` tool since Xcode 3.2 on Snow Leopard. With pkgbuild you can directly build a installer package from an application in the `/Applications` folder:
