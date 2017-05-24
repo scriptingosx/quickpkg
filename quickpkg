@@ -156,7 +156,7 @@ def writePlistToString(plistObject):
 # 
 
 
-quickpkg_version = '0.5'
+quickpkg_version = '0.6'
 supported_extensions = ['dmg', 'app', 'zip']
 
 
@@ -363,7 +363,13 @@ if __name__ == "__main__":
     parser.add_argument('--no-relocatable', dest='relocatable', action='store_false',
                         help="sets BundleIsRelocatable in the PackageInfo (DEFAULT is false)")
     parser.set_defaults(relocatable=False)
-
+    
+    parser.add_argument('--sign',
+                        help='Adds a digital signature to the resulting package.')
+    parser.add_argument('--keychain',
+                        help='Specify a specific keychain to search for the signing identity.')
+    parser.add_argument('--cert',
+                        help='Specify an intermediate certificate to be embedded in the package.')
 
     parser.add_argument("-v", "--verbosity", action="count", default=0, help="controls amount of logging output (max -vvv)")
     parser.add_argument('--version', help='prints the version', action='version', version=quickpkg_version)
@@ -544,6 +550,13 @@ if __name__ == "__main__":
 
     if args.ownership:
         pkgcmd.extend(["--ownership", args.ownership])
+
+    if args.sign:
+        pkgcmd.extend(["--sign", args.sign])
+    if args.keychain:
+        pkgcmd.extend(["--keychain", args.keychain])
+    if args.cert:
+        pkgcmd.extend(["--cert", args.cert])
 
     result = cmdexec(pkgcmd)
 
