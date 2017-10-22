@@ -446,7 +446,7 @@ if __name__ == "__main__":
     # copy found app to payload folder
     app_name = os.path.basename(foundapps[0])
     app_path = os.path.join(payload_path, app_name)
-    shutil.copytree(foundapps[0], app_path)        
+    shutil.copytree(foundapps[0], app_path, symlinks=True)        
 
     # extract version and other metadata
     (app_name, app_identifier, app_version) = appNameAndVersion(app_path)
