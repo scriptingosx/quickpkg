@@ -507,7 +507,7 @@ if __name__ == "__main__":
         cleanup_and_exit(1)
 
     if args.postinstall or args.preinstall:
-        tmp_scripts_path = os.path.join(tmp_dir, "scripts")
+        tmp_scripts_path = os.path.join(tmp_path, "scripts")
         os.makedirs(tmp_scripts_path)
         
         if args.scripts:
