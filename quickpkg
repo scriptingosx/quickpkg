@@ -233,7 +233,7 @@ def attachdmg(dmgpath):
         if "images" in info_dict.keys():
             for y in info_dict["images"]:
                 if "image-path" in y.keys():
-                    if os.path.samefile(y["image-path"], dmgpath):
+                    if y["image-path"] == dmgpath and os.path.samefile(y["image-path"], dmgpath):
                         for x in y.get("system-entities"):
                             if "mount-point" in x.keys():
                                 volpaths.append(x["mount-point"])
