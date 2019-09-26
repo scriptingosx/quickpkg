@@ -3,7 +3,7 @@
     - how to determine if the given file is a script? executable bit? parse the #! ?
     - how to choose id and version? (for true payload free packages, this may not matter since they don't leave a receipt anyway?)
 - use some preference setting to determine default package name syntax
-- support for tar, gzip and bzip and xip
+- support for tar, gzip and bzip
 - identify fonts and put them in /Library/Fonts
 ? other possible file formats: prefpanes, Safari extensions?
 ? identify app just by name or id (could use: mdfind "kMDItemKind == 'Application' && kMDItemDisplayName == 'iTunes'")

@@ -157,7 +157,7 @@ def writePlistToString(plistObject):
 
 
 quickpkg_version = '0.7'
-supported_extensions = ['dmg', 'app', 'zip']
+supported_extensions = ['dmg', 'app', 'zip', 'xip']
 
 
 # modeled after munkiimport but to build a pkg
@@ -430,6 +430,28 @@ if __name__ == "__main__":
         result = cmdexec(unzip_cmd)
         if result["return_code"] != 0:
             print "An error occured while unzipping:"
+            print "%d, %s" % (result["return_code"], result["stderr"])
+            cleanup_and_exit(1)
+        foundapps = finditemswithextension(unarchive_path, 'app')
+        if len(foundapps) == 0:
+            print "Could not find an application!"
+            cleanup_and_exit(1)
+        elif len(foundapps) > 1:
+            print "Found too many Applications! Can't decide!"
+            print foundapps
+            cleanup_and_exit(1)
+
+    # if item is xip, extract to tmp location and find useful contents
+    if item_extension == 'xip':
+        cwd = os.getcwd()
+        unarchive_path = os.path.join(tmp_path, "unarchive")
+        os.makedirs(unarchive_path)
+        os.chdir(unarchive_path)
+        xip_cmd = ["/usr/bin/xip", "--expand", item_path]
+        result = cmdexec(xip_cmd)
+        os.chdir(cwd)
+        if result["return_code"] != 0:
+            print "An error occured while expanding xip archive:"
             print "%d, %s" % (result["return_code"], result["stderr"])
             cleanup_and_exit(1)
         foundapps = finditemswithextension(unarchive_path, 'app')
