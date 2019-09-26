@@ -393,6 +393,7 @@ if __name__ == "__main__":
         exit(1)
 
     foundapps = []
+    copy_app = False
 
     # if item is an app, just pass it on
     if item_extension == 'app':
@@ -400,6 +401,7 @@ if __name__ == "__main__":
             print "This does not seem to be an Application!"
             exit(1)
         foundapps.append(item_path)
+        copy_app = True
 
     dmgvolumepaths = []
     tmp_path = None
@@ -465,10 +467,14 @@ if __name__ == "__main__":
 
     logger("Found application: %s" % foundapps[0], 1)
 
-    # copy found app to payload folder
+    # copy or move found app to payload folder
     app_name = os.path.basename(foundapps[0])
     app_path = os.path.join(payload_path, app_name)
-    shutil.copytree(foundapps[0], app_path, symlinks=True)        
+    if copy_app:
+        shutil.copytree(foundapps[0], app_path, symlinks=True)
+    else:
+        shutil.move(foundapps[0], app_path)
+    
 
     # extract version and other metadata
     (app_name, app_identifier, app_version) = appNameAndVersion(app_path)
