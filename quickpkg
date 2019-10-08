@@ -414,6 +414,7 @@ if __name__ == "__main__":
     # if item is a dmg, mount it and find useful contents
     if item_extension == 'dmg':
         dmgvolumepaths = attachdmg(item_path)
+        copy_app=True
         for x in dmgvolumepaths:
             moreapps = finditemswithextension(x, 'app')
             foundapps.extend(moreapps)
