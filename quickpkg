@@ -156,7 +156,7 @@ def writePlistToString(plistObject):
 # 
 
 
-quickpkg_version = '0.8'
+quickpkg_version = '0.8.1'
 supported_extensions = ['dmg', 'app', 'zip', 'xip']
 
 
