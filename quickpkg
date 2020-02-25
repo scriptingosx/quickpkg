@@ -156,7 +156,7 @@ def writePlistToString(plistObject):
 # 
 
 
-quickpkg_version = '0.8.1'
+quickpkg_version = '0.9'
 supported_extensions = ['dmg', 'app', 'zip', 'xip']
 
 
@@ -346,6 +346,8 @@ if __name__ == "__main__":
     scripts_group.add_argument('--preinstall', '--pre', help="path to the preinstall script")
     scripts_group.add_argument('--postinstall', '--post', help="path to the postinstall script")
 
+    parser.add_argument('--install-location', dest='install_location', help='sets the install-location of the resulting pkg, default is "/Applications"')
+    parser.set_defaults(install_location='/Applications')
     parser.add_argument('--ownership', choices=['recommended', 'preserve', 'preserve-other'],
                         help="will be passed through to pkgbuild")
     parser.add_argument('--output', '--out', '-o',
@@ -489,7 +491,7 @@ if __name__ == "__main__":
                   "--root", payload_path,
                   "--identifier", app_identifier,
                   "--version", app_version,
-                  "--install-location", "/Applications",
+                  "--install-location", args.install_location,
                   component_plist]
     result = cmdexec(analyzecmd)
 
@@ -528,7 +530,7 @@ if __name__ == "__main__":
               "--component-plist", component_plist,
               "--identifier", app_identifier,
               "--version", app_version,
-              "--install-location", "/Applications",
+              "--install-location", args.install_location,
               pkg_path]
 
     if args.scripts and not os.path.exists(args.scripts):
