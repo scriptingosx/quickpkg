@@ -1,3 +1,5 @@
+#!/usr/local/bin/managed_python3
+
 import argparse
 import string
 import os
@@ -5,6 +7,7 @@ import subprocess
 import tempfile
 import shutil
 import stat
+import plistlib
 
 # 
 # quickpkg
@@ -142,7 +145,7 @@ def finditemswithextension(dirpath, item_extension):
     if os.path.exists(dirpath):
         for x in os.listdir(dirpath):
             (item_basename, item_extension) = os.path.splitext(x)
-            item_extension = string.lstrip(item_extension, '.')
+            item_extension = item_extension.lstrip('.')
             if item_extension == 'app':
                 foundapps.append(os.path.join(dirpath, x))
     else:
@@ -157,7 +160,8 @@ def appNameAndVersion(app_path):
         print("Application at path %s does not have Info.plist" % app_path)
         # TODO: cleanup volumes here
         cleanup_and_exit(1)
-    info_plist = readPlist(info_path)
+    with open(info_path, 'rb') as info_file:
+        info_plist = plistlib.load(info_file)
     app_name = info_plist.get("CFBundleName")
     if app_name is None:
         app_name = info_plist.get("CFBundleDisplayName")
@@ -234,7 +238,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     # remove trailing '/' from path
-    item_path = string.rstrip(args.item_path, '/')
+    item_path = args.item_path.rstrip('/')
 
     if item_path.startswith('~'):
         item_path = os.path.expanduser(item_path)
@@ -242,7 +246,7 @@ if __name__ == "__main__":
 
     # get file extension
     (item_basename, item_extension) = os.path.splitext(item_path)
-    item_extension = string.lstrip(item_extension, '.')
+    item_extension = item_extension.lstrip('.')
 
     # is extension supported
     if item_extension not in supported_extensions:
@@ -358,12 +362,14 @@ if __name__ == "__main__":
     
     if not args.relocatable:
         # read and change component plist
-        components = readPlist(component_plist)
+        with open(component_plist, 'rb') as component_file:
+            components = plistlib.load(component_file)
         # component plist is an array of components
         for bundle in components:
             if "BundleIsRelocatable" in list(bundle.keys()):
                 bundle["BundleIsRelocatable"] = False
-        writePlist(components, component_plist)
+        with open(component_plist, 'wb') as component_file:
+            plistlib.dump(components, component_file, fmt=plistlib.FMT_XML)
     
     pkg_name = "{name}-{version}.pkg"
     if args.output:
