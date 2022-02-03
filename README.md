@@ -6,6 +6,10 @@ The tool will look for applications on the first level of the disk image or arch
 
 The name of the resulting package will be of the form `{name}-{version}.pkg`. Spaces will be removed from the name. The package will be written to the current working directory.
 
+## Dependencies
+
+Apple will remove the Python 2.7 binary at `/usr/local/python` from macOS in macOS Monterey 12.3. This script is built and tested with [the MacAdmins "Managed Python."](https://github.com/macadmins/python) It should (probably) work with other Python 3 distributions, as well, but has not been tested on any.
+
 ## Examples
 
 Build package from installed application:
