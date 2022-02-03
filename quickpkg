@@ -14,7 +14,7 @@ import plistlib
 # 
 
 
-quickpkg_version = '1'
+quickpkg_version = '1.0beta'
 supported_extensions = ['dmg', 'app', 'zip', 'xip']
 
 
