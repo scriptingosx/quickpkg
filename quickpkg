@@ -169,7 +169,7 @@ def appNameAndVersion(app_path):
             (app_name, app_ext) = os.path.splitext(os.path.basename(app_path))
     app_identifier = info_plist.get("CFBundleIdentifier")
     app_version = info_plist.get("CFBundleShortVersionString")
-    if app_version is None:
+    if app_version is None or app_version == "":
         app_version = info_plist.get("CFBundleVersion")
     return (app_name, app_identifier, app_version)
 
@@ -449,7 +449,6 @@ if __name__ == "__main__":
         pkgcmd.extend(["--keychain", args.keychain])
     if args.cert:
         pkgcmd.extend(["--cert", args.cert])
-
     result = cmdexec(pkgcmd)
 
     logger(result["stdout"], 1)
