@@ -171,6 +171,13 @@ def appNameAndVersion(app_path):
     app_version = info_plist.get("CFBundleShortVersionString")
     if app_version is None or app_version == "":
         app_version = info_plist.get("CFBundleVersion")
+    if app_version is None or app_version == "":
+        print(
+            "Application at path %s does not have a "
+            "CFBundleShortVersionString or CFBundleVersion" % app_path
+        )
+        # TODO: cleanup volumes here
+        cleanup_and_exit(1)
     return (app_name, app_identifier, app_version)
 
 
