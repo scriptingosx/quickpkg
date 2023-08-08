@@ -7,7 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		C6A91AF42A824AAF00EB41D4 /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = C6A91AF32A824AAF00EB41D4 /* main.swift */; };
+		C6A91AFC2A824B2600EB41D4 /* ArgumentParser in Frameworks */ = {isa = PBXBuildFile; productRef = C6A91AFB2A824B2600EB41D4 /* ArgumentParser */; };
+		C6A91AFE2A824B9F00EB41D4 /* quickpkg.swift in Sources */ = {isa = PBXBuildFile; fileRef = C6A91AFD2A824B9F00EB41D4 /* quickpkg.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -24,7 +25,7 @@
 
 /* Begin PBXFileReference section */
 		C6A91AF02A824AAF00EB41D4 /* quickpkg */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = quickpkg; sourceTree = BUILT_PRODUCTS_DIR; };
-		C6A91AF32A824AAF00EB41D4 /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
+		C6A91AFD2A824B9F00EB41D4 /* quickpkg.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = quickpkg.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -32,6 +33,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				C6A91AFC2A824B2600EB41D4 /* ArgumentParser in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -57,7 +59,7 @@
 		C6A91AF22A824AAF00EB41D4 /* quickpkg */ = {
 			isa = PBXGroup;
 			children = (
-				C6A91AF32A824AAF00EB41D4 /* main.swift */,
+				C6A91AFD2A824B9F00EB41D4 /* quickpkg.swift */,
 			);
 			path = quickpkg;
 			sourceTree = "<group>";
@@ -78,6 +80,9 @@
 			dependencies = (
 			);
 			name = quickpkg;
+			packageProductDependencies = (
+				C6A91AFB2A824B2600EB41D4 /* ArgumentParser */,
+			);
 			productName = quickpkg;
 			productReference = C6A91AF02A824AAF00EB41D4 /* quickpkg */;
 			productType = "com.apple.product-type.tool";
@@ -94,6 +99,7 @@
 				TargetAttributes = {
 					C6A91AEF2A824AAF00EB41D4 = {
 						CreatedOnToolsVersion = 14.3.1;
+						LastSwiftMigration = 1430;
 					};
 				};
 			};
@@ -106,6 +112,9 @@
 				Base,
 			);
 			mainGroup = C6A91AE72A824AAF00EB41D4;
+			packageReferences = (
+				C6A91AFA2A824B2600EB41D4 /* XCRemoteSwiftPackageReference "swift-argument-parser" */,
+			);
 			productRefGroup = C6A91AF12A824AAF00EB41D4 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -120,7 +129,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				C6A91AF42A824AAF00EB41D4 /* main.swift in Sources */,
+				C6A91AFE2A824B9F00EB41D4 /* quickpkg.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -243,10 +252,12 @@
 		C6A91AF82A824AAF00EB41D4 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = JME5BW3F3R;
 				ENABLE_HARDENED_RUNTIME = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
 			};
 			name = Debug;
@@ -254,6 +265,7 @@
 		C6A91AF92A824AAF00EB41D4 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = JME5BW3F3R;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -284,6 +296,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		C6A91AFA2A824B2600EB41D4 /* XCRemoteSwiftPackageReference "swift-argument-parser" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/apple/swift-argument-parser.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.0.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		C6A91AFB2A824B2600EB41D4 /* ArgumentParser */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C6A91AFA2A824B2600EB41D4 /* XCRemoteSwiftPackageReference "swift-argument-parser" */;
+			productName = ArgumentParser;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = C6A91AE82A824AAF00EB41D4 /* Project object */;
 }
