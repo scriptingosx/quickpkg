@@ -74,7 +74,7 @@ You can use '{name}', '{version}' and '{identifier}' as placeholders. If this is
   @Flag(inversion: .prefixedNo, help: ArgumentHelp("Clean up temp files.", visibility: .hidden))
   var clean = true
 
-  @Flag(inversion: .prefixedNo, help: "Sets BundleIsRelocatable in the PackageInfo to true.")
+  @Flag(inversion: .prefixedNo, help: "Sets BundleIsRelocatable in the PackageInfo.")
   var relocatable = false
 
   @Flag(name: .shortAndLong, help: "Controls amount of logging output (max -vvv).")
@@ -151,7 +151,6 @@ You can use '{name}', '{version}' and '{identifier}' as placeholders. If this is
   mutating func createComponentPlist(app: AppMetadata) async -> URL {
     let plist = tempDir.appending(component: "\(app.identifier).plist")
 
-    let pkgbuildPath = "/usr/bin/pkgbuild"
     let arguments: [String] = [ "--analyze",
                                 "--root",  payloadDir.path,
                                 "--identifier", app.identifier,
@@ -161,15 +160,100 @@ You can use '{name}', '{version}' and '{identifier}' as placeholders. If this is
 
     log("Analyzing \(app.name)")
     log("pkgbuild \(arguments.joined(separator: " "))", level: 2)
-    let result = await Process.launch(path: pkgbuildPath, arguments: arguments)
+    let result = await Process.launch(path: Constants.pkgbuild, arguments: arguments)
     switch result {
     case .success(let data):
       if data.exitCode != 0 {
         cleanupAndExit("An error occured while analyzing app.name: \(data.exitCode)", code: 6)
       }
+
+      if !relocatable {
+        do {
+          let components = try NSMutableArray(contentsOf: plist, error: ())
+          for anyComponent in components {
+            if let component = anyComponent as? NSMutableDictionary {
+              component.setValue(false, forKey: "BundleIsRelocatable")
+            }
+          }
+          try components.write(to: plist)
+        } catch {
+          cleanupAndExit("Error updating component plist!", code: 6)
+        }
+      }
+
       return plist
     case .failure:
       cleanupAndExit("couldn't launch pkgbuild!", code: 5)
+    }
+  }
+
+  func outputURL(pkgName: String) -> URL {
+    // default behavior, create file relative to CWD
+    var outputURL: URL = URL(filePath: pkgName, relativeTo: FileManager.default.currentDirectoryURL)
+    // if output variable is set, generate based on that
+    if let output {
+      let expandedOutput = output.expandingTildeInPath
+      outputURL = URL(filePath: expandedOutput, relativeTo: FileManager.default.currentDirectoryURL)
+
+      if FileManager.default.fileExistsAndIsDirectory(atPath: outputURL.path) {
+        outputURL.append(component: pkgName)
+      }
+
+      if outputURL.pathExtension != "pkg" {
+        outputURL.appendPathExtension("pkg")
+      }
+    }
+    return outputURL
+  }
+
+  mutating func buildPKG(app: AppMetadata) async -> URL {
+    // create the component plist
+    let componentPlist = await createComponentPlist(app: app)
+
+    // prepare pkgbuild command
+    let pkgName = "\(app.name)-\(app.version).pkg".replacingOccurrences(of: " ", with: "")
+    // TODO: re-implement sustitution logic
+
+    let outputURL = outputURL(pkgName: pkgName)
+
+    var arguments = ["--root", payloadDir.path,
+                     "--component-plist", componentPlist.path,
+                     "--identifier", app.identifier,
+                     "--version", app.version,
+                     "--install-location", installLocation,
+                     outputURL.path]
+    // prepare scripts folder
+    // TODO: parse scripts arguments and create folder
+
+    // add signing options
+    if let sign = signOptions.sign {
+      arguments.append(contentsOf: ["--sign", sign])
+    }
+
+    if let keychain = signOptions.keychain {
+      arguments.append(contentsOf: ["--keychain", keychain])
+    }
+
+    if let cert = signOptions.cert {
+      arguments.append(contentsOf: ["--cert", cert])
+    }
+
+    // run pkgbuild command
+    log("Building \(pkgName)")
+    log("pkgbuild \(arguments.joined(separator: " "))", level: 2)
+    let result = await Process.launch(path: Constants.pkgbuild, arguments: arguments)
+    switch result {
+    case .success(let data):
+      if verbosity > 0 && !data.standardOutString.isNilOrEmpty {
+        print(data.standardOutString ?? "")
+      }
+      if data.exitCode != 0 {
+        cleanupAndExit("Error building pkg!", code: 7)
+      }
+      print("Wrote package to \(outputURL.path)")
+      return outputURL
+    case .failure:
+      cleanupAndExit("could not launch pkgbuild", code: 8)
     }
   }
 
@@ -181,7 +265,7 @@ You can use '{name}', '{version}' and '{identifier}' as placeholders. If this is
     }
 
     // expand homedir tilde
-    itemPath = NSString(string: itemPath).expandingTildeInPath
+    itemPath = itemPath.expandingTildeInPath
 
     if !Constants.supportedExtensions.contains(itemURL.pathExtension) {
       cleanupAndExit("\(itemURL.pathExtension) is not a supported file type!", code: 1)
@@ -221,14 +305,8 @@ You can use '{name}', '{version}' and '{identifier}' as placeholders. If this is
       cleanupAndExit("could not create a copy of /(sourceAppURL)", code: 5)
     }
 
-    // create the component plist
-    let componentPlist = await createComponentPlist(app: appData)
-
-    // prepare pkgbuild command
-
-    // prepare scripts folder
-
-    // run pkgbuild command
+    // build pkg
+    let outputURL = await buildPKG(app: appData)
 
     // cleanup
     cleanupAndExit("Done!")
