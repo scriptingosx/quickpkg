@@ -60,7 +60,8 @@ struct QuickPkg: AsyncParsableCommand {
 
   @Option(help: """
 Path where the package file will be created.
-You can use '{name}', '{version}' and '{identifier}' as placeholders. If this is a directory, then the package will be created with the default filename {name}-{version}.pkg
+You can use '{name}', '{version}' and '{identifier}' as placeholders.
+If this is a directory, then the package will be created with the default filename {name}-{version}.pkg
 """)
   var output: String?
 
@@ -85,7 +86,7 @@ You can use '{name}', '{version}' and '{identifier}' as placeholders. If this is
   var sourceAppURL: URL?
 
   lazy var tempDir: URL = {
-    var randomNumber = Int.random(in:1000000...9999999)
+    var randomNumber = Int.random(in: 1000000...9999999)
     var tempDir = FileManager.default.temporaryDirectory
       .appendingPathComponent(
         "quickpkg.\(randomNumber)",
@@ -124,7 +125,6 @@ You can use '{name}', '{version}' and '{identifier}' as placeholders. If this is
 
   lazy var itemURL: URL = URL(filePath: itemPath)
 
-
   // MARK: functions
 
   mutating func cleanupAndExit(_ text: String =  "", code: Int32 = 0) -> Never {
@@ -152,7 +152,7 @@ You can use '{name}', '{version}' and '{identifier}' as placeholders. If this is
     let plist = tempDir.appending(component: "\(app.identifier).plist")
 
     let arguments: [String] = [ "--analyze",
-                                "--root",  payloadDir.path,
+                                "--root", payloadDir.path,
                                 "--identifier", app.identifier,
                                 "--version", app.version,
                                 "--install-location", installLocation,
