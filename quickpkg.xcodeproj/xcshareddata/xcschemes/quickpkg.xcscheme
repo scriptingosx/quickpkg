@@ -56,6 +56,10 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
+            argument = "-v"
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
             argument = "--version"
             isEnabled = "NO">
          </CommandLineArgument>
@@ -64,7 +68,7 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "/path/to/item.app"
+            argument = "/Applications/Numbers.app"
             isEnabled = "YES">
          </CommandLineArgument>
       </CommandLineArguments>

@@ -82,6 +82,8 @@ You can use '{name}', '{version}' and '{identifier}' as placeholders. If this is
 
   // MARK: Properties
 
+  var sourceAppURL: URL?
+
   lazy var tempDir: URL = {
     var randomNumber = Int.random(in:1000000...9999999)
     var tempDir = FileManager.default.temporaryDirectory
@@ -101,24 +103,49 @@ You can use '{name}', '{version}' and '{identifier}' as placeholders. If this is
       try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: false)
       return tempDir
     } catch {
-      print("Could not create temporary directory at \(tempDir.path)!")
-      cleanupAndExit(code: 1)
+      cleanupAndExit("Could not create temporary directory at \(tempDir.path)!", code: 1)
     }
+  }()
+
+  lazy var payloadDir: URL = {
+    let payloadDir = tempDir.appendingPathComponent("payload", isDirectory: true)
+    do {
+      try FileManager.default.createDirectory(at: payloadDir, withIntermediateDirectories: false)
+      return payloadDir
+    } catch {
+      cleanupAndExit("Could not create payload directory at \(payloadDir.path)!", code: 1)
+    }
+
+  }()
+
+  lazy var scriptsDir: URL = {
+    tempDir.appendingPathComponent("scripts", isDirectory: true)
   }()
 
   lazy var itemURL: URL = URL(filePath: itemPath)
 
-  lazy var itemBasename = itemURL.deletingPathExtension().lastPathComponent
-  lazy var itemExtension = itemURL.pathExtension
-
 
   // MARK: functions
 
-  func cleanupAndExit(code: Int32 = 0) -> Never {
+  mutating func cleanupAndExit(_ text: String =  "", code: Int32 = 0) -> Never {
+    let message = text.isEmpty ? "Exit Code \(code)" : text
+    log(message, level: 0)
+
+    // delete tmp files, respecting options
+    if clean {
+      try? FileManager.default.removeItem(at: tempDir)
+    }
+
     if code != 0 {
       Self.exit(withError: ExitCode(code))
     }
     Self.exit()
+  }
+
+  func log(_ message: String, level: Int = 1) {
+    if level <= verbosity {
+      print(message)
+    }
   }
 
   // MARK: main
@@ -131,15 +158,36 @@ You can use '{name}', '{version}' and '{identifier}' as placeholders. If this is
     // expand homedir tilde
     itemPath = NSString(string: itemPath).expandingTildeInPath
 
-    if !Constants.supportedExtensions.contains(itemExtension) {
-      print("\(itemExtension) is not a supported file type!")
-      cleanupAndExit(code: 1)
+    if !Constants.supportedExtensions.contains(itemURL.pathExtension) {
+      cleanupAndExit("\(itemURL.pathExtension) is not a supported file type!", code: 1)
     }
 
-    // extract app path from archive
+    if !FileManager.default.fileExists(atPath: itemPath) {
+      cleanupAndExit("Nothing found at \(itemPath)!", code: 41)
+    }
+
+    // extract app path from itemPath
+    switch itemURL.pathExtension {
+    case "app":
+      sourceAppURL = itemURL
+    default:
+      cleanupAndExit("Re-packaging '\(itemURL.pathExtension)' is not implemented yet!", code: 99)
+    }
+
+    guard let sourceAppURL else {
+      cleanupAndExit("Could not determine app.", code: 4)
+    }
+
+    log("found app \(sourceAppURL.path)")
 
     // copy or move app
-
+    let destAppURL = payloadDir.appendingPathComponent(itemURL.lastPathComponent)
+    do {
+      log("copying to \(destAppURL.path)")
+      try FileManager.default.copyItem(at: sourceAppURL, to: destAppURL)
+    } catch {
+      cleanupAndExit("could not create a copy of /(sourceAppURL)", code: 5)
+    }
     // get metadata from app
 
     // create the component plist
@@ -151,6 +199,6 @@ You can use '{name}', '{version}' and '{identifier}' as placeholders. If this is
     // run pkgbuild command
 
     // cleanup
-
+    cleanupAndExit("Done!")
    }
 }
