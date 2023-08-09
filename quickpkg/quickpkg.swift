@@ -9,7 +9,7 @@ import Foundation
 import ArgumentParser
 
 @main
-struct QuickPkg: ParsableCommand {
+struct QuickPkg: AsyncParsableCommand {
   static var configuration = CommandConfiguration(
     abstract: "Build installer packages from apps or archives.",
     usage: "quickpkg [options] <installer-item>",
@@ -148,8 +148,33 @@ You can use '{name}', '{version}' and '{identifier}' as placeholders. If this is
     }
   }
 
+  mutating func createComponentPlist(app: AppMetadata) async -> URL {
+    let plist = tempDir.appending(component: "\(app.identifier).plist")
+
+    let pkgbuildPath = "/usr/bin/pkgbuild"
+    let arguments: [String] = [ "--analyze",
+                                "--root",  payloadDir.path,
+                                "--identifier", app.identifier,
+                                "--version", app.version,
+                                "--install-location", installLocation,
+                                plist.path]
+
+    log("Analyzing \(app.name)")
+    log("pkgbuild \(arguments.joined(separator: " "))", level: 2)
+    let result = await Process.launch(path: pkgbuildPath, arguments: arguments)
+    switch result {
+    case .success(let data):
+      if data.exitCode != 0 {
+        cleanupAndExit("An error occured while analyzing app.name: \(data.exitCode)", code: 6)
+      }
+      return plist
+    case .failure:
+      cleanupAndExit("couldn't launch pkgbuild!", code: 5)
+    }
+  }
+
   // MARK: main
-  mutating func run() {
+  mutating func run() async {
     // remove trailing '/'
     if itemPath.hasSuffix("/") {
       itemPath = String(itemPath.dropLast())
@@ -180,6 +205,13 @@ You can use '{name}', '{version}' and '{identifier}' as placeholders. If this is
 
     log("found app \(sourceAppURL.path)")
 
+    // get metadata from app
+    guard let appData = AppMetadata(url: sourceAppURL) else {
+      cleanupAndExit("Couldn't get App Metadata", code: 5)
+    }
+
+    log("Name: \(appData.name), id: \(appData.identifier), version: \(appData.version), minOS: \(appData.minOSVersion)")
+
     // copy or move app
     let destAppURL = payloadDir.appendingPathComponent(itemURL.lastPathComponent)
     do {
@@ -188,9 +220,9 @@ You can use '{name}', '{version}' and '{identifier}' as placeholders. If this is
     } catch {
       cleanupAndExit("could not create a copy of /(sourceAppURL)", code: 5)
     }
-    // get metadata from app
 
     // create the component plist
+    let componentPlist = await createComponentPlist(app: appData)
 
     // prepare pkgbuild command
 

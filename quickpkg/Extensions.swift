@@ -12,3 +12,10 @@ extension URL {
     self.deletingPathExtension().lastPathComponent
   }
 }
+
+// from: https://www.swiftbysundell.com/articles/extending-optionals-in-swift/
+extension Optional where Wrapped: Collection {
+  var isNilOrEmpty: Bool {
+    return self?.isEmpty ?? true
+  }
+}
