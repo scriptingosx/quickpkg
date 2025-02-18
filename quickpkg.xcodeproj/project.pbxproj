@@ -10,6 +10,7 @@
 		C66ED2EB2A82AED300E2FE12 /* Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = C66ED2EA2A82AED300E2FE12 /* Extensions.swift */; };
 		C66ED2ED2A83737F00E2FE12 /* AppMetadata.swift in Sources */ = {isa = PBXBuildFile; fileRef = C66ED2EC2A83737F00E2FE12 /* AppMetadata.swift */; };
 		C66ED2EF2A837D8200E2FE12 /* Process-Launch.swift in Sources */ = {isa = PBXBuildFile; fileRef = C66ED2EE2A837D8200E2FE12 /* Process-Launch.swift */; };
+		C66ED30D2A83CA4D00E2FE12 /* DMGHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = C66ED30C2A83CA4D00E2FE12 /* DMGHelper.swift */; };
 		C6A91AFC2A824B2600EB41D4 /* ArgumentParser in Frameworks */ = {isa = PBXBuildFile; productRef = C6A91AFB2A824B2600EB41D4 /* ArgumentParser */; };
 		C6A91AFE2A824B9F00EB41D4 /* quickpkg.swift in Sources */ = {isa = PBXBuildFile; fileRef = C6A91AFD2A824B9F00EB41D4 /* quickpkg.swift */; };
 		C6A91B002A8266B100EB41D4 /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = C6A91AFF2A8266B100EB41D4 /* Constants.swift */; };
@@ -31,6 +32,7 @@
 		C66ED2EA2A82AED300E2FE12 /* Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Extensions.swift; sourceTree = "<group>"; };
 		C66ED2EC2A83737F00E2FE12 /* AppMetadata.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppMetadata.swift; sourceTree = "<group>"; };
 		C66ED2EE2A837D8200E2FE12 /* Process-Launch.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Process-Launch.swift"; sourceTree = "<group>"; };
+		C66ED30C2A83CA4D00E2FE12 /* DMGHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DMGHelper.swift; sourceTree = "<group>"; };
 		C6A91AF02A824AAF00EB41D4 /* quickpkg */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = quickpkg; sourceTree = BUILT_PRODUCTS_DIR; };
 		C6A91AFD2A824B9F00EB41D4 /* quickpkg.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = quickpkg.swift; sourceTree = "<group>"; };
 		C6A91AFF2A8266B100EB41D4 /* Constants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
@@ -68,6 +70,7 @@
 			isa = PBXGroup;
 			children = (
 				C6A91AFD2A824B9F00EB41D4 /* quickpkg.swift */,
+				C66ED30C2A83CA4D00E2FE12 /* DMGHelper.swift */,
 				C66ED2EC2A83737F00E2FE12 /* AppMetadata.swift */,
 				C6A91AFF2A8266B100EB41D4 /* Constants.swift */,
 				C66ED2EA2A82AED300E2FE12 /* Extensions.swift */,
@@ -166,6 +169,7 @@
 			files = (
 				C6A91AFE2A824B9F00EB41D4 /* quickpkg.swift in Sources */,
 				C66ED2EF2A837D8200E2FE12 /* Process-Launch.swift in Sources */,
+				C66ED30D2A83CA4D00E2FE12 /* DMGHelper.swift in Sources */,
 				C66ED2EB2A82AED300E2FE12 /* Extensions.swift in Sources */,
 				C66ED2ED2A83737F00E2FE12 /* AppMetadata.swift in Sources */,
 				C6A91B002A8266B100EB41D4 /* Constants.swift in Sources */,
@@ -225,7 +229,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 13.3;
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -279,7 +283,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 13.3;
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				SDKROOT = macosx;

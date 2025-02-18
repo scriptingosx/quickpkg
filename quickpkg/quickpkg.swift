@@ -212,7 +212,7 @@ If this is a directory, then the package will be created with the default filena
 
     // prepare pkgbuild command
     let pkgName = "\(app.name)-\(app.version).pkg".replacingOccurrences(of: " ", with: "")
-    // TODO: re-implement sustitution logic
+    // TODO: re-implement substitution logic
 
     let outputURL = outputURL(pkgName: pkgName)
 
@@ -250,7 +250,6 @@ If this is a directory, then the package will be created with the default filena
       if data.exitCode != 0 {
         cleanupAndExit("Error building pkg!", code: 7)
       }
-      print("Wrote package to \(outputURL.path)")
       return outputURL
     case .failure:
       cleanupAndExit("could not launch pkgbuild", code: 8)
@@ -279,6 +278,8 @@ If this is a directory, then the package will be created with the default filena
     switch itemURL.pathExtension {
     case "app":
       sourceAppURL = itemURL
+    case "dmg":
+      break
     default:
       cleanupAndExit("Re-packaging '\(itemURL.pathExtension)' is not implemented yet!", code: 99)
     }
@@ -307,6 +308,7 @@ If this is a directory, then the package will be created with the default filena
 
     // build pkg
     let outputURL = await buildPKG(app: appData)
+    print("Wrote package to \(outputURL.path)")
 
     // cleanup
     cleanupAndExit("Done!")
