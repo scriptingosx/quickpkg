@@ -1,6 +1,6 @@
 import Foundation
 
-struct PackageBuilder {
+struct PackageBuilder: Sendable {
   let executor: ShellExecutor
   let logger: Logger
   

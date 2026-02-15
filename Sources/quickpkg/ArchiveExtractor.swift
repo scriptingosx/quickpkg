@@ -1,6 +1,6 @@
 import Foundation
 
-struct ArchiveExtractor {
+struct ArchiveExtractor: Sendable {
   let executor: ShellExecutor
   let logger: Logger
   

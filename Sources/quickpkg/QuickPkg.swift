@@ -107,69 +107,68 @@ struct QuickPkg: AsyncParsableCommand {
     let dmgManager = DMGManager(executor: executor, logger: logger)
     let archiveExtractor = ArchiveExtractor(executor: executor, logger: logger)
 
-    // Clean up mounted DMGs when done
-    defer {
-      if clean {
-        Task {
-          await dmgManager.detachAll()
-        }
-      }
-    }
+    // Capture clean flag for use in async cleanup
+    let shouldClean = clean
 
     // Find the application
     let appURL: URL
-    switch inputType {
-    case .app:
-      guard FileManager.default.fileExists(atPath: path) else {
-        throw QuickPkgError.fileNotFound(path)
-      }
-      appURL = url
+    do {
+      switch inputType {
+      case .app:
+        guard FileManager.default.fileExists(atPath: path) else {
+          throw QuickPkgError.fileNotFound(path)
+        }
+        appURL = url
 
-    case .dmg:
-      guard FileManager.default.fileExists(atPath: path) else {
-        throw QuickPkgError.fileNotFound(path)
-      }
-      let mountPoints = try await dmgManager.attach(url)
-      let apps = findApplications(in: mountPoints)
-      guard !apps.isEmpty else {
-        throw QuickPkgError.noApplicationFound
-      }
-      guard apps.count == 1 else {
-        throw QuickPkgError.multipleApplicationsFound(apps.map(\.path))
-      }
-      appURL = apps[0]
+      case .dmg:
+        guard FileManager.default.fileExists(atPath: path) else {
+          throw QuickPkgError.fileNotFound(path)
+        }
+        let mountPoints = try await dmgManager.attach(url)
+        let apps = findApplications(in: mountPoints)
+        guard !apps.isEmpty else {
+          throw QuickPkgError.noApplicationFound
+        }
+        guard apps.count == 1 else {
+          throw QuickPkgError.multipleApplicationsFound(apps.map(\.path))
+        }
+        appURL = apps[0]
 
-    case .zip:
-      guard FileManager.default.fileExists(atPath: path) else {
-        throw QuickPkgError.fileNotFound(path)
-      }
-      let extractDir = tempDir.path.appendingPathComponent("unarchive")
-      try FileManager.default.createDirectory(at: extractDir, withIntermediateDirectories: true)
-      try await archiveExtractor.extractZip(url, to: extractDir)
-      let apps = findApplications(in: [extractDir])
-      guard !apps.isEmpty else {
-        throw QuickPkgError.noApplicationFound
-      }
-      guard apps.count == 1 else {
-        throw QuickPkgError.multipleApplicationsFound(apps.map(\.path))
-      }
-      appURL = apps[0]
+      case .zip:
+        guard FileManager.default.fileExists(atPath: path) else {
+          throw QuickPkgError.fileNotFound(path)
+        }
+        let extractDir = tempDir.path.appendingPathComponent("unarchive")
+        try FileManager.default.createDirectory(at: extractDir, withIntermediateDirectories: true)
+        try await archiveExtractor.extractZip(url, to: extractDir)
+        let apps = findApplications(in: [extractDir])
+        guard !apps.isEmpty else {
+          throw QuickPkgError.noApplicationFound
+        }
+        guard apps.count == 1 else {
+          throw QuickPkgError.multipleApplicationsFound(apps.map(\.path))
+        }
+        appURL = apps[0]
 
-    case .xip:
-      guard FileManager.default.fileExists(atPath: path) else {
-        throw QuickPkgError.fileNotFound(path)
+      case .xip:
+        guard FileManager.default.fileExists(atPath: path) else {
+          throw QuickPkgError.fileNotFound(path)
+        }
+        let extractDir = tempDir.path.appendingPathComponent("unarchive")
+        try FileManager.default.createDirectory(at: extractDir, withIntermediateDirectories: true)
+        try await archiveExtractor.extractXip(url, to: extractDir)
+        let apps = findApplications(in: [extractDir])
+        guard !apps.isEmpty else {
+          throw QuickPkgError.noApplicationFound
+        }
+        guard apps.count == 1 else {
+          throw QuickPkgError.multipleApplicationsFound(apps.map(\.path))
+        }
+        appURL = apps[0]
       }
-      let extractDir = tempDir.path.appendingPathComponent("unarchive")
-      try FileManager.default.createDirectory(at: extractDir, withIntermediateDirectories: true)
-      try await archiveExtractor.extractXip(url, to: extractDir)
-      let apps = findApplications(in: [extractDir])
-      guard !apps.isEmpty else {
-        throw QuickPkgError.noApplicationFound
-      }
-      guard apps.count == 1 else {
-        throw QuickPkgError.multipleApplicationsFound(apps.map(\.path))
-      }
-      appURL = apps[0]
+    } catch {
+      if shouldClean { await dmgManager.detachAll() }
+      throw error
     }
 
     logger.log("Found application: \(appURL.path)", level: 1)
@@ -179,6 +178,9 @@ struct QuickPkg: AsyncParsableCommand {
     try FileManager.default.createDirectory(at: payloadDir, withIntermediateDirectories: true)
     let payloadAppURL = payloadDir.appendingPathComponent(appURL.lastPathComponent)
     try FileManager.default.copyItem(at: appURL, to: payloadAppURL)
+
+    // Detach DMG now that we've copied the app
+    if shouldClean { await dmgManager.detachAll() }
 
     // Extract metadata from app
     let metadata = try AppMetadata(from: payloadAppURL)

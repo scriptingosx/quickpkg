@@ -1,6 +1,6 @@
 import Foundation
 
-struct PlistHandler {
+struct PlistHandler: Sendable {
   /// Extract the first plist from mixed output (like hdiutil which returns text + plist)
   static func extractFirstPlist(from data: Data) throws -> Data {
     guard let string = String(data: data, encoding: .utf8) else {
