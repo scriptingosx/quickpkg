@@ -47,6 +47,29 @@ install_location="/"
 SRCROOT=$(dirname ${0:A})
 build_dir="$SRCROOT/.build"
 
+# verify signing certificates exist
+echo "### verifying certificates and credentials"
+
+if ! security find-identity -v | grep -q "$application_sign_cert"; then
+    echo "error: Application signing certificate not found: $application_sign_cert"
+    exit 1
+fi
+
+if ! security find-identity -v | grep -q "$installer_sign_cert"; then
+    echo "error: Installer signing certificate not found: $installer_sign_cert"
+    exit 1
+fi
+
+# verify notarization credentials exist
+if ! xcrun notarytool store-credentials --list 2>/dev/null | grep -q "$credential_profile"; then
+    echo "error: Notarization profile '$credential_profile' not found"
+    echo "Run: xcrun notarytool store-credentials '$credential_profile' --apple-id <email> --team-id <team>"
+    exit 1
+fi
+
+echo "All certificates and credentials verified"
+echo
+
 date +"%F %T"
 
 # build the binary
@@ -109,10 +132,7 @@ echo "Min OS Version:  $min_os_version"
 echo "Developer ID:    $developer_name_and_id"
 
 pkgroot="$build_dir/pkgroot"
-if [[ ! -d $pkgroot ]]; then
-    mkdir -p $pkgroot
-fi
-
+rm -rf $pkgroot
 mkdir -p $binary_location
 mkdir -p $manpage_location
 
@@ -156,7 +176,7 @@ echo "### building component pkg file"
 
 if ! pkgbuild --root $pkgroot \
          --identifier $identifier \
-         --version $version-$build_number \
+         --version $version \
          --install-location $install_location \
          --min-os-version $min_os_version \
          --compression latest \
@@ -174,7 +194,7 @@ echo "### building distribution pkg file"
 
 if ! productbuild --package "$component_path" \
                   --identifier "$identifier" \
-                  --version "$version-$build_number" \
+                  --version "$version" \
                   --sign "$installer_sign_cert" \
                   "$product_path"
 then
