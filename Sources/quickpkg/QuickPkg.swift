@@ -187,7 +187,7 @@ struct QuickPkg: AsyncParsableCommand {
     // Prepare scripts if needed
     var scriptsDir: URL?
     if let scriptsPath = scripts {
-      let scriptsURL = URL(fileURLWithPath: scriptsPath)
+      let scriptsURL = URL(filePath: scriptsPath)
       guard FileManager.default.fileExists(atPath: scriptsPath) else {
         throw QuickPkgError.scriptNotFound(scriptsPath)
       }
@@ -207,7 +207,7 @@ struct QuickPkg: AsyncParsableCommand {
 
       // Add preinstall script
       if let preinstallPath = preinstall {
-        let preinstallURL = URL(fileURLWithPath: preinstallPath)
+        let preinstallURL = URL(filePath: preinstallPath)
         guard FileManager.default.fileExists(atPath: preinstallPath) else {
           throw QuickPkgError.scriptNotFound(preinstallPath)
         }
@@ -222,7 +222,7 @@ struct QuickPkg: AsyncParsableCommand {
 
       // Add postinstall script
       if let postinstallPath = postinstall {
-        let postinstallURL = URL(fileURLWithPath: postinstallPath)
+        let postinstallURL = URL(filePath: postinstallPath)
         guard FileManager.default.fileExists(atPath: postinstallPath) else {
           throw QuickPkgError.scriptNotFound(postinstallPath)
         }

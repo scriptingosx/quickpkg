@@ -8,7 +8,7 @@ enum InputType: String, CaseIterable {
     case xip
 
     static func from(path: String) -> InputType? {
-        let ext = URL(fileURLWithPath: path).pathExtension.lowercased()
+        let ext = URL(filePath: path).pathExtension.lowercased()
         return InputType(rawValue: ext)
     }
 }
