@@ -36,6 +36,7 @@ struct PackageBuilder: Sendable {
     scripts: URL?,
     ownership: Ownership?,
     relocatable: Bool,
+    minOSVersion: String?,
     sign: String?,
     keychain: String?,
     cert: String?,
@@ -74,7 +75,12 @@ struct PackageBuilder: Sendable {
     if let ownership = ownership {
       arguments += ["--ownership", ownership.rawValue]
     }
-    
+
+    if let minOSVersion = minOSVersion {
+      arguments += ["--min-os-version", minOSVersion]
+      logger.log("Minimum OS version: \(minOSVersion)", level: 1)
+    }
+
     if let sign = sign {
       arguments += ["--sign", sign]
     }

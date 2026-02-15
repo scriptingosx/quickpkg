@@ -185,6 +185,9 @@ struct QuickPkg: AsyncParsableCommand {
     // Extract metadata from app
     let metadata = try AppMetadata(from: payloadAppURL)
     logger.log("Name: \(metadata.name), ID: \(metadata.identifier), Version: \(metadata.version)", level: 1)
+    if let minOS = metadata.minimumSystemVersion {
+      logger.log("Minimum macOS: \(minOS)", level: 1)
+    }
 
     // Prepare scripts if needed
     var scriptsDir: URL?
@@ -260,6 +263,7 @@ struct QuickPkg: AsyncParsableCommand {
       scripts: scriptsDir,
       ownership: ownership,
       relocatable: relocatable,
+      minOSVersion: metadata.minimumSystemVersion,
       sign: sign,
       keychain: keychain,
       cert: cert,

@@ -21,12 +21,18 @@ extension Bundle {
     }
     return nil
   }
+
+  /// Returns LSMinimumSystemVersion if present
+  var minimumSystemVersion: String? {
+    object(forInfoDictionaryKey: "LSMinimumSystemVersion") as? String
+  }
 }
 
 struct AppMetadata {
   let name: String
   let identifier: String
   let version: String
+  let minimumSystemVersion: String?
 
   init(from appURL: URL) throws {
     guard let bundle = Bundle(url: appURL) else {
@@ -47,5 +53,7 @@ struct AppMetadata {
       throw QuickPkgError.infoPlistParsingFailed("Missing version information")
     }
     self.version = version
+
+    self.minimumSystemVersion = bundle.minimumSystemVersion
   }
 }
