@@ -23,3 +23,21 @@ enum Compression: String, ExpressibleByArgument, CaseIterable {
   case latest
   case legacy
 }
+
+enum PackageType: String, EnumerableFlag {
+  case component
+  case distribution
+
+  static func name(for value: PackageType) -> NameSpecification {
+    .long
+  }
+
+  static func help(for value: PackageType) -> ArgumentHelp? {
+    switch value {
+    case .component:
+      return "Build a component package"
+    case .distribution:
+      return "Build a distribution package using productbuild"
+    }
+  }
+}

@@ -35,13 +35,13 @@ struct QuickPkg: AsyncParsableCommand {
 
   // MARK: - Package Options
 
-  @Option(name: .customLong("install-location"), help: "Install location (default: /Applications)")
+  @Option(name: .customLong("install-location"), help: "Install location")
   var installLocation: String = "/Applications"
 
   @Option(help: "Ownership setting: recommended, preserve, or preserve-other")
   var ownership: Ownership?
 
-  @Option(help: "Compression type: latest or legacy (default: latest)")
+  @Option(help: "Compression type: latest or legacy")
   var compression: Compression = .latest
 
   @Option(name: [.customLong("output"), .customLong("out"), .short],
@@ -50,11 +50,14 @@ struct QuickPkg: AsyncParsableCommand {
 
   // MARK: - Flags
 
-  @Flag(inversion: .prefixedNo, help: "Clean up temp files (default: true)")
+  @Flag(inversion: .prefixedNo, help: "Clean up temp files")
   var clean: Bool = true
 
-  @Flag(inversion: .prefixedNo, help: "Make package relocatable (default: false)")
+  @Flag(inversion: .prefixedNo, help: "Make package relocatable")
   var relocatable: Bool = false
+
+  @Flag(exclusivity: .exclusive)
+  var packageType: PackageType = .distribution
 
   // MARK: - Signing Options
 
@@ -260,6 +263,7 @@ struct QuickPkg: AsyncParsableCommand {
     try await packageBuilder.build(
       payloadDir: payloadDir,
       outputPath: outputPath,
+      name: metadata.name,
       identifier: metadata.identifier,
       version: metadata.version,
       installLocation: installLocation,
@@ -268,6 +272,7 @@ struct QuickPkg: AsyncParsableCommand {
       compression: compression,
       relocatable: relocatable,
       minOSVersion: metadata.minimumSystemVersion,
+      packageType: packageType,
       sign: sign,
       keychain: keychain,
       cert: cert,
