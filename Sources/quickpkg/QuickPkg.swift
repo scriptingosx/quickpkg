@@ -7,12 +7,15 @@ let quickpkgVersion = "2.0.0"
 struct QuickPkg: AsyncParsableCommand {
   static let configuration = CommandConfiguration(
     commandName: "quickpkg",
-    abstract: "Build packages quickly from applications, disk images, or archives.",
+    abstract: "Build packages quickly from installed applications, disk images, or zip archives.",
     discussion: """
             Quickly build a package from an installed application, a disk image file,
             or zip/xip archive with an enclosed application bundle.
 
-            The tool extracts the application name and version to name the resulting pkg file.
+            The tool extracts the application name, version, and other metadata from the application 
+            for the package installer metadata and to name the resulting pkg file.
+
+            Example: quickpkg /path/to/installer_item
             """,
     version: quickpkgVersion
   )
@@ -24,7 +27,9 @@ struct QuickPkg: AsyncParsableCommand {
 
   // MARK: - Installation Scripts
 
-  @Option(help: "Path to a folder with scripts")
+  @Option(help: ArgumentHelp(
+    "Path to a folder with scripts.",
+    discussion: "If combined with --preinstall or --postinstall, scripts will be merged when possible."))
   var scripts: String?
 
   @Option(name: [.long, .customLong("pre")], help: "Path to the preinstall script")
@@ -38,14 +43,16 @@ struct QuickPkg: AsyncParsableCommand {
   @Option(name: .customLong("install-location"), help: "Install location")
   var installLocation: String = "/Applications"
 
-  @Option(help: "Ownership setting: recommended, preserve, or preserve-other")
+  @Option(help: "Ownership setting")
   var ownership: Ownership?
 
-  @Option(help: "Compression type: latest or legacy")
+  @Option(help: "Compression type")
   var compression: Compression = .latest
 
-  @Option(name: [.customLong("output"), .customLong("out"), .short],
-          help: "Output path (supports {name}, {version}, {identifier} placeholders)")
+  @Option(name: [.customLong("output"), .short],
+          help: ArgumentHelp(
+            "Output path for the package.",
+            discussion: "Supports {name}, {version}, {identifier} placeholders. (default filename: {name}-{version}.pkg)"))
   var output: String?
 
   // MARK: - Flags
