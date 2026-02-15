@@ -60,16 +60,6 @@ if ! security find-identity -v | grep -q "$installer_sign_cert"; then
     exit 1
 fi
 
-# verify notarization credentials exist
-if ! xcrun notarytool store-credentials --list 2>/dev/null | grep -q "$credential_profile"; then
-    echo "error: Notarization profile '$credential_profile' not found"
-    echo "Run: xcrun notarytool store-credentials '$credential_profile' --apple-id <email> --team-id <team>"
-    exit 1
-fi
-
-echo "All certificates and credentials verified"
-echo
-
 date +"%F %T"
 
 # build the binary
