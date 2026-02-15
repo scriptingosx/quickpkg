@@ -57,7 +57,13 @@ struct PackageBuilder: Sendable {
     if !relocatable {
       try PlistHandler.setRelocatable(false, in: componentPlist)
     }
-    
+
+    // Remove quarantine extended attributes from payload
+    logger.log("Removing quarantine attributes from payload", level: 1)
+    _ = try await executor.run([
+      "/usr/bin/xattr", "-dr", "com.apple.quarantine", payloadDir.path
+    ])
+
     // Build the pkgbuild command
     var arguments = [
       "/usr/bin/pkgbuild",
