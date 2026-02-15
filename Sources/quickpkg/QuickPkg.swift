@@ -233,7 +233,7 @@ struct QuickPkg: AsyncParsableCommand {
     dmgManager: DMGManager,
     archiveExtractor: ArchiveExtractor
   ) async throws -> URL {
-    guard FileManager.default.fileExists(atPath: url.path) else {
+    guard url.fileExists else {
       throw QuickPkgError.fileNotFound(url.path)
     }
 
@@ -265,7 +265,7 @@ struct QuickPkg: AsyncParsableCommand {
 
     if let scriptsPath = scripts {
       let scriptsURL = URL(filePath: scriptsPath)
-      guard FileManager.default.fileExists(atPath: scriptsPath) else {
+      guard scriptsURL.fileExists else {
         throw QuickPkgError.scriptNotFound(scriptsPath)
       }
       scriptsDir = scriptsURL
@@ -301,11 +301,11 @@ struct QuickPkg: AsyncParsableCommand {
   /// Copy a script to the scripts directory with proper permissions
   private func copyScript(from sourcePath: String, to scriptsDir: URL, name: String, logger: Logger) throws {
     let sourceURL = URL(filePath: sourcePath)
-    guard FileManager.default.fileExists(atPath: sourcePath) else {
+    guard sourceURL.fileExists else {
       throw QuickPkgError.scriptNotFound(sourcePath)
     }
     let destURL = scriptsDir.appendingPathComponent(name)
-    if FileManager.default.fileExists(atPath: destURL.path) {
+    if destURL.fileExists {
       throw QuickPkgError.scriptConflict("\(name) script already exists in scripts folder")
     }
     try FileManager.default.copyItem(at: sourceURL, to: destURL)
@@ -319,7 +319,8 @@ struct QuickPkg: AsyncParsableCommand {
     var path: String
 
     if let output = output {
-      if FileManager.default.fileExists(atPath: output),
+      let outputURL = URL(filePath: output)
+      if outputURL.fileExists,
          (try? FileManager.default.attributesOfItem(atPath: output)[.type] as? FileAttributeType) == .typeDirectory {
         path = (output as NSString).appendingPathComponent(defaultName)
       } else {

@@ -131,7 +131,7 @@ actor DMGManager {
       return
     }
 
-    guard FileManager.default.fileExists(atPath: mountPoint.path) else { return }
+    guard mountPoint.fileExists else { return }
 
     let result = try await executor.run(["/usr/bin/hdiutil", "detach", mountPoint.path])
 
