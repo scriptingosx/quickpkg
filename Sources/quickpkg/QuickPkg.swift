@@ -87,21 +87,10 @@ struct QuickPkg: AsyncParsableCommand {
   mutating func run() async throws {
     let logger = Logger(verbosity: verbose)
 
-    // Normalize path
-    var path = itemPath
-    if path.hasPrefix("~") {
-      path = NSString(string: path).expandingTildeInPath
-    }
-    path = (path as NSString).standardizingPath
-
-    // Remove trailing slash
-    if path.hasSuffix("/") {
-      path = String(path.dropLast())
-    }
-
+    // Normalize path and determine input type
+    let path = normalizePath(itemPath)
     let url = URL(filePath: path)
 
-    // Determine input type
     guard let inputType = InputType.from(path: path) else {
       throw QuickPkgError.unsupportedExtension(url.pathExtension)
     }
@@ -126,59 +115,13 @@ struct QuickPkg: AsyncParsableCommand {
     // Find the application
     let appURL: URL
     do {
-      switch inputType {
-      case .app:
-        guard FileManager.default.fileExists(atPath: path) else {
-          throw QuickPkgError.fileNotFound(path)
-        }
-        appURL = url
-
-      case .dmg:
-        guard FileManager.default.fileExists(atPath: path) else {
-          throw QuickPkgError.fileNotFound(path)
-        }
-        let mountPoints = try await dmgManager.attach(url)
-        let apps = findApplications(in: mountPoints)
-        guard !apps.isEmpty else {
-          throw QuickPkgError.noApplicationFound
-        }
-        guard apps.count == 1 else {
-          throw QuickPkgError.multipleApplicationsFound(apps.map(\.path))
-        }
-        appURL = apps[0]
-
-      case .zip:
-        guard FileManager.default.fileExists(atPath: path) else {
-          throw QuickPkgError.fileNotFound(path)
-        }
-        let extractDir = tempDir.path.appendingPathComponent("unarchive")
-        try FileManager.default.createDirectory(at: extractDir, withIntermediateDirectories: true)
-        try await archiveExtractor.extractZip(url, to: extractDir)
-        let apps = findApplications(in: [extractDir])
-        guard !apps.isEmpty else {
-          throw QuickPkgError.noApplicationFound
-        }
-        guard apps.count == 1 else {
-          throw QuickPkgError.multipleApplicationsFound(apps.map(\.path))
-        }
-        appURL = apps[0]
-
-      case .xip:
-        guard FileManager.default.fileExists(atPath: path) else {
-          throw QuickPkgError.fileNotFound(path)
-        }
-        let extractDir = tempDir.path.appendingPathComponent("unarchive")
-        try FileManager.default.createDirectory(at: extractDir, withIntermediateDirectories: true)
-        try await archiveExtractor.extractXip(url, to: extractDir)
-        let apps = findApplications(in: [extractDir])
-        guard !apps.isEmpty else {
-          throw QuickPkgError.noApplicationFound
-        }
-        guard apps.count == 1 else {
-          throw QuickPkgError.multipleApplicationsFound(apps.map(\.path))
-        }
-        appURL = apps[0]
-      }
+      appURL = try await findApplication(
+        at: url,
+        inputType: inputType,
+        tempDir: tempDir,
+        dmgManager: dmgManager,
+        archiveExtractor: archiveExtractor
+      )
     } catch {
       if shouldClean { await dmgManager.detachAll() }
       throw error
@@ -186,7 +129,7 @@ struct QuickPkg: AsyncParsableCommand {
 
     logger.log("Found application: \(appURL.path)", level: 1)
 
-    // Copy app to payload directory (needed for dmg/zip/xip, and for apps to avoid modifying original)
+    // Copy app to payload directory
     let payloadDir = tempDir.path.appendingPathComponent("payload")
     try FileManager.default.createDirectory(at: payloadDir, withIntermediateDirectories: true)
     let payloadAppURL = payloadDir.appendingPathComponent(appURL.lastPathComponent)
@@ -203,63 +146,10 @@ struct QuickPkg: AsyncParsableCommand {
     }
 
     // Prepare scripts if needed
-    var scriptsDir: URL?
-    if let scriptsPath = scripts {
-      let scriptsURL = URL(filePath: scriptsPath)
-      guard FileManager.default.fileExists(atPath: scriptsPath) else {
-        throw QuickPkgError.scriptNotFound(scriptsPath)
-      }
-      scriptsDir = scriptsURL
-    }
-
-    if preinstall != nil || postinstall != nil {
-      let tmpScriptsDir = tempDir.path.appendingPathComponent("scripts")
-      try FileManager.default.createDirectory(at: tmpScriptsDir, withIntermediateDirectories: true)
-
-      // Copy existing scripts folder if provided
-      if let existingScripts = scriptsDir {
-        for item in try FileManager.default.contentsOfDirectory(at: existingScripts, includingPropertiesForKeys: nil) {
-          try FileManager.default.copyItem(at: item, to: tmpScriptsDir.appendingPathComponent(item.lastPathComponent))
-        }
-      }
-
-      // Add preinstall script
-      if let preinstallPath = preinstall {
-        let preinstallURL = URL(filePath: preinstallPath)
-        guard FileManager.default.fileExists(atPath: preinstallPath) else {
-          throw QuickPkgError.scriptNotFound(preinstallPath)
-        }
-        let destURL = tmpScriptsDir.appendingPathComponent("preinstall")
-        if FileManager.default.fileExists(atPath: destURL.path) {
-          throw QuickPkgError.scriptConflict("preinstall script already exists in scripts folder")
-        }
-        try FileManager.default.copyItem(at: preinstallURL, to: destURL)
-        try FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: destURL.path)
-        logger.log("Copied preinstall script to \(destURL.path)", level: 1)
-      }
-
-      // Add postinstall script
-      if let postinstallPath = postinstall {
-        let postinstallURL = URL(filePath: postinstallPath)
-        guard FileManager.default.fileExists(atPath: postinstallPath) else {
-          throw QuickPkgError.scriptNotFound(postinstallPath)
-        }
-        let destURL = tmpScriptsDir.appendingPathComponent("postinstall")
-        if FileManager.default.fileExists(atPath: destURL.path) {
-          throw QuickPkgError.scriptConflict("postinstall script already exists in scripts folder")
-        }
-        try FileManager.default.copyItem(at: postinstallURL, to: destURL)
-        try FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: destURL.path)
-        logger.log("Copied postinstall script to \(destURL.path)", level: 1)
-      }
-
-      scriptsDir = tmpScriptsDir
-    }
+    let scriptsDir = try prepareScripts(tempDir: tempDir, logger: logger)
 
     // Build the package
     let packageBuilder = PackageBuilder(executor: executor, logger: logger)
-
-    // Determine output path
     let outputPath = determineOutputPath(
       output: output,
       name: metadata.name,
@@ -291,6 +181,20 @@ struct QuickPkg: AsyncParsableCommand {
 
   // MARK: - Helpers
 
+  /// Normalize a file path (expand tilde, standardize, remove trailing slash)
+  private func normalizePath(_ path: String) -> String {
+    var result = path
+    if result.hasPrefix("~") {
+      result = NSString(string: result).expandingTildeInPath
+    }
+    result = (result as NSString).standardizingPath
+    if result.hasSuffix("/") {
+      result = String(result.dropLast())
+    }
+    return result
+  }
+
+  /// Find applications in the given directories
   private func findApplications(in directories: [URL]) -> [URL] {
     var apps: [URL] = []
     let fm = FileManager.default
@@ -309,6 +213,107 @@ struct QuickPkg: AsyncParsableCommand {
     return apps
   }
 
+  /// Validate exactly one application exists and return it
+  private func validateSingleApplication(in directories: [URL]) throws -> URL {
+    let apps = findApplications(in: directories)
+    guard !apps.isEmpty else {
+      throw QuickPkgError.noApplicationFound
+    }
+    guard apps.count == 1 else {
+      throw QuickPkgError.multipleApplicationsFound(apps.map(\.path))
+    }
+    return apps[0]
+  }
+
+  /// Find the application from the input source
+  private func findApplication(
+    at url: URL,
+    inputType: InputType,
+    tempDir: TempDirectory,
+    dmgManager: DMGManager,
+    archiveExtractor: ArchiveExtractor
+  ) async throws -> URL {
+    guard FileManager.default.fileExists(atPath: url.path) else {
+      throw QuickPkgError.fileNotFound(url.path)
+    }
+
+    switch inputType {
+    case .app:
+      return url
+
+    case .dmg:
+      let mountPoints = try await dmgManager.attach(url)
+      return try validateSingleApplication(in: mountPoints)
+
+    case .zip:
+      let extractDir = tempDir.path.appendingPathComponent("unarchive")
+      try FileManager.default.createDirectory(at: extractDir, withIntermediateDirectories: true)
+      try await archiveExtractor.extractZip(url, to: extractDir)
+      return try validateSingleApplication(in: [extractDir])
+
+    case .xip:
+      let extractDir = tempDir.path.appendingPathComponent("unarchive")
+      try FileManager.default.createDirectory(at: extractDir, withIntermediateDirectories: true)
+      try await archiveExtractor.extractXip(url, to: extractDir)
+      return try validateSingleApplication(in: [extractDir])
+    }
+  }
+
+  /// Prepare the scripts directory, merging --scripts with --preinstall/--postinstall if needed
+  private func prepareScripts(tempDir: TempDirectory, logger: Logger) throws -> URL? {
+    var scriptsDir: URL?
+
+    if let scriptsPath = scripts {
+      let scriptsURL = URL(filePath: scriptsPath)
+      guard FileManager.default.fileExists(atPath: scriptsPath) else {
+        throw QuickPkgError.scriptNotFound(scriptsPath)
+      }
+      scriptsDir = scriptsURL
+    }
+
+    guard preinstall != nil || postinstall != nil else {
+      return scriptsDir
+    }
+
+    let tmpScriptsDir = tempDir.path.appendingPathComponent("scripts")
+    try FileManager.default.createDirectory(at: tmpScriptsDir, withIntermediateDirectories: true)
+
+    // Copy existing scripts folder if provided
+    if let existingScripts = scriptsDir {
+      for item in try FileManager.default.contentsOfDirectory(at: existingScripts, includingPropertiesForKeys: nil) {
+        try FileManager.default.copyItem(at: item, to: tmpScriptsDir.appendingPathComponent(item.lastPathComponent))
+      }
+    }
+
+    // Add preinstall script
+    if let preinstallPath = preinstall {
+      try copyScript(from: preinstallPath, to: tmpScriptsDir, name: "preinstall", logger: logger)
+    }
+
+    // Add postinstall script
+    if let postinstallPath = postinstall {
+      try copyScript(from: postinstallPath, to: tmpScriptsDir, name: "postinstall", logger: logger)
+    }
+
+    return tmpScriptsDir
+  }
+
+  /// Copy a script to the scripts directory with proper permissions
+  private func copyScript(from sourcePath: String, to scriptsDir: URL, name: String, logger: Logger) throws {
+    let sourceURL = URL(filePath: sourcePath)
+    guard FileManager.default.fileExists(atPath: sourcePath) else {
+      throw QuickPkgError.scriptNotFound(sourcePath)
+    }
+    let destURL = scriptsDir.appendingPathComponent(name)
+    if FileManager.default.fileExists(atPath: destURL.path) {
+      throw QuickPkgError.scriptConflict("\(name) script already exists in scripts folder")
+    }
+    try FileManager.default.copyItem(at: sourceURL, to: destURL)
+    try FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: destURL.path)
+    logger.log("Copied \(name) script to \(destURL.path)", level: 1)
+  }
+
+  /// Determine the output path for the package
   private func determineOutputPath(output: String?, name: String, version: String, identifier: String) -> String {
     let defaultName = "{name}-{version}.pkg"
     var path: String
