@@ -198,8 +198,14 @@ However, while `pkgbuild` does automatically name the package, it does not inclu
 
 This tool is not meant to replace [`autopkg`](https://github.com/autopkg/autopkg). `autopkg` will automate the download, the re-packaging (if necessary) and the upload to and configuration of your client management system. It can also handle much more complex setups than `quickpkg`. `autopkg` is far superior and should be your tool of choice.
 
-However, there are situations where `autopkg` does not work well. The most common reason is if the download cannot be automated because the download page is behind a paywall. Or maybe you are just experimenting with a test server and do not want to change your production `autopkg` setup. Also `autopkg` requires a recipe for a given piece of software. If no recipe exists, `quickpkg` may be a simple alternative. (Though if `quickpkg` works, creating an `autopkg` recipe should not be hard.)
+On the other hand, autopkg requires a certain expertise and a dedicated setup which needs to be maintained. Sometimes a 'quick' re-packaging is just easier.
 
+There are also situations where `autopkg` does not work well. The most common reason is if the download cannot be automated because the download page is behind a paywall or similar restriction. Or maybe you are just experimenting with a test server and do not want to change your production `autopkg` setup. Also `autopkg` requires a recipe for a given piece of software. If no recipe exists, `quickpkg` may be a simple alternative. (Though if `quickpkg` works, creating an `autopkg` recipe should not be hard.)
+
+
+## A Note on Notarization
+
+`quickpkg` does not support notarization. Apple's notarization process requires that the application inside the package is signed with the same Developer ID as the package itself. Since `quickpkg` is designed to repackage third-party applications that you don't control the code signing for, notarization is not possible for packages created with this tool.
 
 ## Warning
 
