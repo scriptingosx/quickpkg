@@ -41,6 +41,9 @@ struct QuickPkg: AsyncParsableCommand {
   @Option(help: "Ownership setting: recommended, preserve, or preserve-other")
   var ownership: Ownership?
 
+  @Option(help: "Compression type: latest or legacy (default: latest)")
+  var compression: Compression = .latest
+
   @Option(name: [.customLong("output"), .customLong("out"), .short],
           help: "Output path (supports {name}, {version}, {identifier} placeholders)")
   var output: String?
@@ -262,6 +265,7 @@ struct QuickPkg: AsyncParsableCommand {
       installLocation: installLocation,
       scripts: scriptsDir,
       ownership: ownership,
+      compression: compression,
       relocatable: relocatable,
       minOSVersion: metadata.minimumSystemVersion,
       sign: sign,

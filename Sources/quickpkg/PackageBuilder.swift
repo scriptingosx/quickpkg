@@ -35,6 +35,7 @@ struct PackageBuilder: Sendable {
     installLocation: String,
     scripts: URL?,
     ownership: Ownership?,
+    compression: Compression,
     relocatable: Bool,
     minOSVersion: String?,
     sign: String?,
@@ -75,6 +76,8 @@ struct PackageBuilder: Sendable {
     if let ownership = ownership {
       arguments += ["--ownership", ownership.rawValue]
     }
+
+    arguments += ["--compression", compression.rawValue]
 
     if let minOSVersion = minOSVersion {
       arguments += ["--min-os-version", minOSVersion]

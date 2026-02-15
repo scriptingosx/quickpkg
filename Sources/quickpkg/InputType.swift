@@ -18,3 +18,8 @@ enum Ownership: String, ExpressibleByArgument, CaseIterable {
   case preserve
   case preserveOther = "preserve-other"
 }
+
+enum Compression: String, ExpressibleByArgument, CaseIterable {
+  case latest
+  case legacy
+}
