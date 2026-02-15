@@ -12,7 +12,7 @@ struct QuickPkg: AsyncParsableCommand {
             Quickly build a package from an installed application, a disk image file,
             or zip/xip archive with an enclosed application bundle.
 
-            The tool extracts the application name, version, and other metadata from the application 
+            The tool extracts the application name, version, and other metadata from the application
             for the package installer metadata and to name the resulting pkg file.
 
             Example: quickpkg /path/to/installer_item

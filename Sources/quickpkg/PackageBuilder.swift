@@ -3,7 +3,7 @@ import Foundation
 struct PackageBuilder: Sendable {
   let executor: ShellExecutor
   let logger: Logger
-  
+
   /// Analyze the payload and create a component plist
   func analyze(
     payloadDir: URL,
@@ -21,11 +21,11 @@ struct PackageBuilder: Sendable {
       "--install-location", installLocation,
       outputPlist.path
     ]
-    
+
     let result = try await executor.runOrThrow(arguments)
     logger.log(result.stdout, level: 1)
   }
-  
+
   /// Build the package
   func build(
     payloadDir: URL,

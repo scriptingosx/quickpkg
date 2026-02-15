@@ -15,7 +15,7 @@ enum QuickPkgError: LocalizedError {
   case scriptConflict(String)
   case commandFailed(command: String, exitCode: Int32, stderr: String)
   case plistParsingFailed(String)
-  
+
   var errorDescription: String? {
     switch self {
     case .unsupportedExtension(let ext):

@@ -6,7 +6,7 @@ enum InputType: String, CaseIterable {
   case dmg
   case zip
   case xip
-  
+
   static func from(path: String) -> InputType? {
     let ext = URL(filePath: path).pathExtension.lowercased()
     return InputType(rawValue: ext)
