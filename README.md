@@ -4,6 +4,8 @@ This tool will quickly and easily build a package from an installed application,
 
 The tool will look for applications on the first level of the disk image or archive. If it finds no or more than one application it will error.
 
+When the application carries a quarantine flag, `quickpkg` will remove it before packaging, so that the installed app on the destination system is not quarantined.
+
 The name of the resulting package will be of the form `{name}-{version}.pkg`. Spaces will be removed from the name. The package will be written to the current working directory.
 
 ## Installation
