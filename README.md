@@ -6,35 +6,9 @@ The tool will look for applications on the first level of the disk image or arch
 
 The name of the resulting package will be of the form `{name}-{version}.pkg`. Spaces will be removed from the name. The package will be written to the current working directory.
 
-## Implementations
-
-Two implementations are available:
-
-- [**Swift** (v2.0)](https://github.com/scriptingosx/quickpkg/releases/latest) - Primary implementation requiring macOS 15+
-- [**Python** (v1.0)](https://github.com/scriptingosx/quickpkg/releases/tag/v1.0) - _Legacy_ implementation using [MacAdmins Managed Python](https://github.com/macadmins/python)
-
-The Swift version includes additional features like distribution packages, automatic minimum OS version detection, and compression options.
-
 ## Installation
 
-### Swift Version (Recommended)
-
-Build from source:
-
-```bash
-git clone https://github.com/scriptingosx/quickpkg.git
-cd quickpkg
-swift build -c release
-sudo cp .build/release/quickpkg /usr/local/bin/
-```
-
-### Python Version
-
-Requires [MacAdmins Managed Python](https://github.com/macadmins/python) or another Python 3 distribution.
-
-```bash
-sudo cp quickpkg /usr/local/bin/
-```
+Download the [quickpkg installer](https://github.com/scriptingosx/quickpkg/releases/latest). The `quickpkg` binary will be installed in `/usr/local/bin/quickpkg`. Run `quickpkg --help` for details.
 
 ## Examples
 
@@ -190,9 +164,19 @@ pkgbuild --component /Volumes/Firefox/Firefox.app \
          Firefox.pkg
 ```
 
-This tool even does the work of determining a bundle's identifier and version and sets the identifier and version of the pkg to the same values.
+`pkgbuild` even does the work of determining a bundle's identifier, version, and minimum supported OS version and sets the attributes of the pkg to the same values.
 
-However, while `pkgbuild` does automatically name the package, it does not include the version, which is important when tracking many versions of the same application. It also doesn't automatically look into a `dmg` file or `zip` archive.
+However, `pkgbuild` does not automatically create the pkg's filename, determine minimum OS version. Also, you often need a distribution pkg/product archive which requires an extra step to wrap the component package. I built `quickpkg` to simplify this workflow. `quickpkg` can also automatically unarchive and repackage apps delivered in dmg, zip, or xip archives. 
+
+## A Note on Notarization
+
+`quickpkg` does not support notarization. Apple's notarization process requires that the application inside the package is signed with the same Developer ID as the package itself. Since `quickpkg` is designed to repackage third-party applications that you don't control the code signing for, notarization is not recommended or possible for packages created with this tool.
+
+## Warning
+
+All `quickpkg` does is identify an application bundle and package it in a way that the package will install that application bundle into the `/Applications` folder (or another location specified with `--install-location`). If the application needs other files (libraries, frameworks, configuration files, license files, preferences etc.) to run and work they are your responsibility.
+
+Also be sure to understand what you are running `quickpkg` against. For example, when you run `quickpkg` on the disk image you get from DropBox, you will get a pkg that installs the DropBox installer in the `/Applications` folder. Probably not what you wanted.
 
 ## `quickpkg` vs `autopkg`
 
@@ -201,14 +185,3 @@ This tool is not meant to replace [`autopkg`](https://github.com/autopkg/autopkg
 On the other hand, autopkg requires a certain expertise and a dedicated setup which needs to be maintained. Sometimes a 'quick' re-packaging is just easier.
 
 There are also situations where `autopkg` does not work well. The most common reason is if the download cannot be automated because the download page is behind a paywall or similar restriction. Or maybe you are just experimenting with a test server and do not want to change your production `autopkg` setup. Also `autopkg` requires a recipe for a given piece of software. If no recipe exists, `quickpkg` may be a simple alternative. (Though if `quickpkg` works, creating an `autopkg` recipe should not be hard.)
-
-
-## A Note on Notarization
-
-`quickpkg` does not support notarization. Apple's notarization process requires that the application inside the package is signed with the same Developer ID as the package itself. Since `quickpkg` is designed to repackage third-party applications that you don't control the code signing for, notarization is not possible for packages created with this tool.
-
-## Warning
-
-All `quickpkg` does is identify an application bundle and package it in a way that the package will install that application bundle into the `/Applications` folder (or another location specified with `--install-location`). If the application needs other files (libraries, frameworks, configuration files, license files, preferences etc.) to run and work they are your responsibility.
-
-Also be sure to understand what you are running `quickpkg` against. For example, when you run `quickpkg` on the disk image you get from DropBox, you will get a pkg that installs the DropBox installer in the `/Applications` folder. Probably not what you wanted.
