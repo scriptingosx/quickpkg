@@ -13,24 +13,24 @@ Two implementations exist:
 ## Building and Running
 
 ```bash
-# Build and run
+# Build and run (use Numbers.app for testing)
 swift build
-.build/debug/quickpkg /Applications/SomeApp.app
+.build/debug/quickpkg /Applications/Numbers.app
 
 # Release build
 swift build -c release
 
 # Test with verbosity (-v, -vv, or -vvv)
-.build/debug/quickpkg -vvv /Applications/SomeApp.app
+.build/debug/quickpkg -vvv /Applications/Numbers.app
 
 # Test scripts option
-.build/debug/quickpkg /Applications/SomeApp.app --scripts testscripts/
+.build/debug/quickpkg /Applications/Numbers.app --scripts testscripts/
 
 # Build distribution package (default)
-.build/debug/quickpkg /Applications/SomeApp.app
+.build/debug/quickpkg /Applications/Numbers.app
 
 # Build component package
-.build/debug/quickpkg /Applications/SomeApp.app --component
+.build/debug/quickpkg /Applications/Numbers.app --component
 ```
 
 ## Architecture

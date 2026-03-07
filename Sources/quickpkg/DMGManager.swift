@@ -18,12 +18,13 @@ actor DMGManager {
 
   /// Check if a DMG has a Software License Agreement
   func hasSLA(at path: URL) async throws -> Bool {
-    let arguments = ["/usr/bin/hdiutil", "imageinfo", path.path, "-plist"]
-    logger.log("Executing: \(arguments.joined(separator: " "))", level: 3)
+    let command: FilePath = "/usr/bin/hdiutil"
+    let arguments: Arguments = ["imageinfo", path.path, "-plist"]
+    logger.log("Executing: \(command) \(arguments)", level: 3)
 
     let result = try await Subprocess.run(
-      .path(FilePath(arguments[0])),
-      arguments: Arguments(Array(arguments.dropFirst())),
+      .path(command),
+      arguments: arguments,
       output: .string(limit: .max),
       error: .string(limit: .max)
     )
@@ -42,12 +43,13 @@ actor DMGManager {
 
   /// Check if DMG is already mounted and return mount points
   func existingMountPoints(for dmgPath: URL) async throws -> [URL]? {
-    let arguments = ["/usr/bin/hdiutil", "info", "-plist"]
-    logger.log("Executing: \(arguments.joined(separator: " "))", level: 3)
+    let command: FilePath = "/usr/bin/hdiutil"
+    let arguments: Arguments = ["info", "-plist"]
+    logger.log("Executing: \(command) \(arguments)", level: 3)
 
     let result = try await Subprocess.run(
-      .path(FilePath(arguments[0])),
-      arguments: Arguments(Array(arguments.dropFirst())),
+      .path(command),
+      arguments: arguments,
       output: .string(limit: .max),
       error: .string(limit: .max)
     )
@@ -108,8 +110,8 @@ actor DMGManager {
     }
 
     // Mount the DMG
-    let arguments = [
-      "/usr/bin/hdiutil",
+    let command: FilePath = "/usr/bin/hdiutil"
+    let arguments: Arguments = [
       "attach",
       dmgPath.path,
       "-mountrandom", "/private/tmp",
@@ -117,7 +119,7 @@ actor DMGManager {
       "-nobrowse"
     ]
 
-    logger.log("Executing: \(arguments.joined(separator: " "))", level: 3)
+    logger.log("Executing: \(command) \(arguments)", level: 3)
 
     let terminationStatus: TerminationStatus
     let standardOutput: String?
@@ -125,8 +127,8 @@ actor DMGManager {
 
     if sla {
       let result = try await Subprocess.run(
-        .path(FilePath(arguments[0])),
-        arguments: Arguments(Array(arguments.dropFirst())),
+        .path(command),
+        arguments: arguments,
         input: .string("Y\n"),
         output: .string(limit: .max),
         error: .string(limit: .max)
@@ -136,8 +138,8 @@ actor DMGManager {
       standardError = result.standardError
     } else {
       let result = try await Subprocess.run(
-        .path(FilePath(arguments[0])),
-        arguments: Arguments(Array(arguments.dropFirst())),
+        .path(command),
+        arguments: arguments,
         output: .string(limit: .max),
         error: .string(limit: .max)
       )
@@ -184,12 +186,13 @@ actor DMGManager {
 
     guard mountPoint.fileExists else { return }
 
-    let arguments = ["/usr/bin/hdiutil", "detach", mountPoint.path]
-    logger.log("Executing: \(arguments.joined(separator: " "))", level: 3)
+    let command: FilePath = "/usr/bin/hdiutil"
+    let arguments: Arguments = ["detach", mountPoint.path]
+    logger.log("Executing: \(command) \(arguments)", level: 3)
 
     let result = try await Subprocess.run(
-      .path(FilePath(arguments[0])),
-      arguments: Arguments(Array(arguments.dropFirst())),
+      .path(command),
+      arguments: arguments,
       output: .string(limit: .max),
       error: .string(limit: .max)
     )

@@ -18,8 +18,8 @@ struct PackageBuilder: Sendable {
     installLocation: String,
     outputPlist: URL
   ) async throws {
-    let arguments = [
-      "/usr/bin/pkgbuild",
+    let command: FilePath = "/usr/bin/pkgbuild"
+    let arguments: Arguments = [
       "--analyze",
       "--root", payloadDir.path,
       "--identifier", identifier,
@@ -28,11 +28,11 @@ struct PackageBuilder: Sendable {
       outputPlist.path
     ]
 
-    logger.log("Executing: \(arguments.joined(separator: " "))", level: 3)
+    logger.log("Executing: \(command) \(arguments)", level: 3)
 
     let result = try await Subprocess.run(
-      .path(FilePath(arguments[0])),
-      arguments: Arguments(Array(arguments.dropFirst())),
+      .path(command),
+      arguments: arguments,
       output: .string(limit: .max),
       error: .string(limit: .max)
     )
@@ -78,11 +78,12 @@ struct PackageBuilder: Sendable {
 
     // Remove quarantine extended attributes from payload
     logger.log("Removing quarantine attributes from payload", level: 1)
-    let xattrArgs = ["/usr/bin/xattr", "-dr", "com.apple.quarantine", payloadDir.path]
-    logger.log("Executing: \(xattrArgs.joined(separator: " "))", level: 3)
+    let xattrCommand: FilePath = "/usr/bin/xattr"
+    let xattrArgs: Arguments = ["-dr", "com.apple.quarantine", payloadDir.path]
+    logger.log("Executing: \(xattrCommand) \(xattrArgs)", level: 3)
     _ = try await Subprocess.run(
-      .path(FilePath(xattrArgs[0])),
-      arguments: Arguments(Array(xattrArgs.dropFirst())),
+      .path(xattrCommand),
+      arguments: xattrArgs,
       output: .discarded,
       error: .discarded
     )
@@ -96,8 +97,8 @@ struct PackageBuilder: Sendable {
     }
 
     // Build the pkgbuild command
-    var arguments = [
-      "/usr/bin/pkgbuild",
+    let pkgbuildCommand: FilePath = "/usr/bin/pkgbuild"
+    var pkgbuildArgs: [String] = [
       "--root", payloadDir.path,
       "--component-plist", componentPlist.path,
       "--identifier", identifier,
@@ -106,44 +107,45 @@ struct PackageBuilder: Sendable {
     ]
 
     if let scriptsDir = scripts {
-      arguments += ["--scripts", scriptsDir.path]
+      pkgbuildArgs += ["--scripts", scriptsDir.path]
       logger.log("Scripts path: \(scriptsDir.path)", level: 1)
     }
 
     if let ownership = ownership {
-      arguments += ["--ownership", ownership.rawValue]
+      pkgbuildArgs += ["--ownership", ownership.rawValue]
     }
 
-    arguments += ["--compression", compression.rawValue]
+    pkgbuildArgs += ["--compression", compression.rawValue]
 
     if let minOSVersion = minOSVersion {
-      arguments += ["--min-os-version", minOSVersion]
+      pkgbuildArgs += ["--min-os-version", minOSVersion]
       logger.log("Minimum OS version: \(minOSVersion)", level: 1)
     }
 
     // Only sign with pkgbuild for component packages
     if packageType == .component {
       if let sign = sign {
-        arguments += ["--sign", sign]
+        pkgbuildArgs += ["--sign", sign]
       }
 
       if let keychain = keychain {
-        arguments += ["--keychain", keychain]
+        pkgbuildArgs += ["--keychain", keychain]
       }
 
       if let cert = cert {
-        arguments += ["--cert", cert]
+        pkgbuildArgs += ["--cert", cert]
       }
     }
 
-    arguments.append(pkgbuildOutput)
+    pkgbuildArgs.append(pkgbuildOutput)
 
     logger.log("Building component package: \(pkgbuildOutput)", level: 1)
-    logger.log("Executing: \(arguments.joined(separator: " "))", level: 3)
+    let arguments = Arguments(pkgbuildArgs)
+    logger.log("Executing: \(pkgbuildCommand) \(arguments)", level: 3)
 
     let result = try await Subprocess.run(
-      .path(FilePath(arguments[0])),
-      arguments: Arguments(Array(arguments.dropFirst())),
+      .path(pkgbuildCommand),
+      arguments: arguments,
       output: .string(limit: .max),
       error: .string(limit: .max)
     )
@@ -176,33 +178,34 @@ struct PackageBuilder: Sendable {
     keychain: String?,
     cert: String?
   ) async throws {
-    var arguments = [
-      "/usr/bin/productbuild",
+    let command: FilePath = "/usr/bin/productbuild"
+    var productbuildArgs: [String] = [
       "--package", componentPackage,
       "--identifier", identifier,
       "--version", version
     ]
 
     if let sign = sign {
-      arguments += ["--sign", sign]
+      productbuildArgs += ["--sign", sign]
     }
 
     if let keychain = keychain {
-      arguments += ["--keychain", keychain]
+      productbuildArgs += ["--keychain", keychain]
     }
 
     if let cert = cert {
-      arguments += ["--cert", cert]
+      productbuildArgs += ["--cert", cert]
     }
 
-    arguments.append(outputPath)
+    productbuildArgs.append(outputPath)
 
     logger.log("Building distribution package: \(outputPath)", level: 1)
-    logger.log("Executing: \(arguments.joined(separator: " "))", level: 3)
+    let arguments = Arguments(productbuildArgs)
+    logger.log("Executing: \(command) \(arguments)", level: 3)
 
     let result = try await Subprocess.run(
-      .path(FilePath(arguments[0])),
-      arguments: Arguments(Array(arguments.dropFirst())),
+      .path(command),
+      arguments: arguments,
       output: .string(limit: .max),
       error: .string(limit: .max)
     )

@@ -14,12 +14,13 @@ struct ArchiveExtractor: Sendable {
   func extractZip(_ archivePath: URL, to destinationDir: URL) async throws {
     logger.log("Extracting zip: \(archivePath.path) to \(destinationDir.path)", level: 1)
 
-    let arguments = ["/usr/bin/unzip", "-q", archivePath.path, "-d", destinationDir.path]
-    logger.log("Executing: \(arguments.joined(separator: " "))", level: 3)
+    let command: FilePath = "/usr/bin/unzip"
+    let arguments: Arguments = ["-q", archivePath.path, "-d", destinationDir.path]
+    logger.log("Executing: \(command) \(arguments)", level: 3)
 
     let result = try await Subprocess.run(
-      .path(FilePath(arguments[0])),
-      arguments: Arguments(Array(arguments.dropFirst())),
+      .path(command),
+      arguments: arguments,
       output: .string(limit: .max),
       error: .string(limit: .max)
     )
@@ -33,13 +34,14 @@ struct ArchiveExtractor: Sendable {
   func extractXip(_ archivePath: URL, to destinationDir: URL) async throws {
     logger.log("Extracting xip: \(archivePath.path) to \(destinationDir.path)", level: 1)
 
-    let arguments = ["/usr/bin/xip", "--expand", archivePath.path]
-    logger.log("Executing: \(arguments.joined(separator: " "))", level: 3)
+    let command: FilePath = "/usr/bin/xip"
+    let arguments: Arguments = ["--expand", archivePath.path]
+    logger.log("Executing: \(command) \(arguments)", level: 3)
 
     // xip --expand extracts to the current directory, so we need to run it from the destination
     let result = try await Subprocess.run(
-      .path(FilePath(arguments[0])),
-      arguments: Arguments(Array(arguments.dropFirst())),
+      .path(command),
+      arguments: arguments,
       workingDirectory: FilePath(destinationDir.path),
       output: .string(limit: .max),
       error: .string(limit: .max)
