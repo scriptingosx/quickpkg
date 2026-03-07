@@ -1,7 +1,13 @@
 import Foundation
+import Subprocess
+
+#if canImport(System)
+import System
+#else
+import SystemPackage
+#endif
 
 struct PackageBuilder: Sendable {
-  let executor: ShellExecutor
   let logger: Logger
 
   /// Analyze the payload and create a component plist
@@ -22,8 +28,18 @@ struct PackageBuilder: Sendable {
       outputPlist.path
     ]
 
-    let result = try await executor.runOrThrow(arguments)
-    logger.log(result.stdout, level: 1)
+    logger.log("Executing: \(arguments.joined(separator: " "))", level: 3)
+
+    let result = try await Subprocess.run(
+      .path(FilePath(arguments[0])),
+      arguments: Arguments(Array(arguments.dropFirst())),
+      output: .string(limit: .max),
+      error: .string(limit: .max)
+    )
+
+    guard result.terminationStatus.isSuccess else {
+      throw QuickPkgError.pkgbuildFailed(result.standardError ?? "pkgbuild --analyze failed")
+    }
   }
 
   /// Build the package
@@ -62,9 +78,14 @@ struct PackageBuilder: Sendable {
 
     // Remove quarantine extended attributes from payload
     logger.log("Removing quarantine attributes from payload", level: 1)
-    _ = try await executor.run([
-      "/usr/bin/xattr", "-dr", "com.apple.quarantine", payloadDir.path
-    ])
+    let xattrArgs = ["/usr/bin/xattr", "-dr", "com.apple.quarantine", payloadDir.path]
+    logger.log("Executing: \(xattrArgs.joined(separator: " "))", level: 3)
+    _ = try await Subprocess.run(
+      .path(FilePath(xattrArgs[0])),
+      arguments: Arguments(Array(xattrArgs.dropFirst())),
+      output: .discarded,
+      error: .discarded
+    )
 
     // Determine output path for pkgbuild (temp location for distribution, final for component)
     let pkgbuildOutput: String
@@ -118,12 +139,17 @@ struct PackageBuilder: Sendable {
     arguments.append(pkgbuildOutput)
 
     logger.log("Building component package: \(pkgbuildOutput)", level: 1)
-    let result = try await executor.run(arguments)
+    logger.log("Executing: \(arguments.joined(separator: " "))", level: 3)
 
-    logger.log(result.stdout, level: 1)
+    let result = try await Subprocess.run(
+      .path(FilePath(arguments[0])),
+      arguments: Arguments(Array(arguments.dropFirst())),
+      output: .string(limit: .max),
+      error: .string(limit: .max)
+    )
 
-    if result.exitCode != 0 {
-      throw QuickPkgError.pkgbuildFailed("(\(result.exitCode)) \(result.stderr)")
+    guard result.terminationStatus.isSuccess else {
+      throw QuickPkgError.pkgbuildFailed(result.standardError ?? "pkgbuild failed")
     }
 
     // For distribution packages, run productbuild
@@ -172,12 +198,17 @@ struct PackageBuilder: Sendable {
     arguments.append(outputPath)
 
     logger.log("Building distribution package: \(outputPath)", level: 1)
-    let result = try await executor.run(arguments)
+    logger.log("Executing: \(arguments.joined(separator: " "))", level: 3)
 
-    logger.log(result.stdout, level: 1)
+    let result = try await Subprocess.run(
+      .path(FilePath(arguments[0])),
+      arguments: Arguments(Array(arguments.dropFirst())),
+      output: .string(limit: .max),
+      error: .string(limit: .max)
+    )
 
-    if result.exitCode != 0 {
-      throw QuickPkgError.pkgbuildFailed("productbuild failed (\(result.exitCode)) \(result.stderr)")
+    guard result.terminationStatus.isSuccess else {
+      throw QuickPkgError.pkgbuildFailed(result.standardError ?? "productbuild failed")
     }
   }
 }

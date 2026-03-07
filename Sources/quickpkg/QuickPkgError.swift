@@ -13,7 +13,6 @@ enum QuickPkgError: LocalizedError {
   case pkgbuildFailed(String)
   case scriptNotFound(String)
   case scriptConflict(String)
-  case commandFailed(command: String, exitCode: Int32, stderr: String)
   case plistParsingFailed(String)
 
   var errorDescription: String? {
@@ -42,8 +41,6 @@ enum QuickPkgError: LocalizedError {
       return "Script not found: \(path)"
     case .scriptConflict(let reason):
       return "Script conflict: \(reason)"
-    case .commandFailed(let command, let exitCode, let stderr):
-      return "Command failed (\(exitCode)): \(command)\n\(stderr)"
     case .plistParsingFailed(let reason):
       return "Failed to parse plist: \(reason)"
     }

@@ -1,26 +1,38 @@
 import Foundation
+import Subprocess
+
+#if canImport(System)
+import System
+#else
+import SystemPackage
+#endif
 
 actor DMGManager {
-  private let executor: ShellExecutor
   private let logger: Logger
   private var wasMounted: [URL: Bool] = [:]
   private var mountedVolumes: [URL] = []
 
-  init(
-    executor: ShellExecutor,
-    logger: Logger
-  ) {
-    self.executor = executor
+  init(logger: Logger) {
     self.logger = logger
   }
 
   /// Check if a DMG has a Software License Agreement
   func hasSLA(at path: URL) async throws -> Bool {
-    let result = try await executor.runOrThrow([
-      "/usr/bin/hdiutil", "imageinfo", path.path, "-plist"
-    ])
+    let arguments = ["/usr/bin/hdiutil", "imageinfo", path.path, "-plist"]
+    logger.log("Executing: \(arguments.joined(separator: " "))", level: 3)
 
-    let plist = try PlistHandler.parse(Data(result.stdout.utf8))
+    let result = try await Subprocess.run(
+      .path(FilePath(arguments[0])),
+      arguments: Arguments(Array(arguments.dropFirst())),
+      output: .string(limit: .max),
+      error: .string(limit: .max)
+    )
+
+    guard result.terminationStatus.isSuccess else {
+      throw QuickPkgError.dmgMountFailed(result.standardError ?? "hdiutil imageinfo failed")
+    }
+
+    let plist = try PlistHandler.parse(Data((result.standardOutput ?? "").utf8))
     if let properties = plist["Properties"] as? [String: Any],
        let hasSLA = properties["Software License Agreement"] as? Bool {
       return hasSLA
@@ -30,9 +42,21 @@ actor DMGManager {
 
   /// Check if DMG is already mounted and return mount points
   func existingMountPoints(for dmgPath: URL) async throws -> [URL]? {
-    let result = try await executor.runOrThrow(["/usr/bin/hdiutil", "info", "-plist"])
+    let arguments = ["/usr/bin/hdiutil", "info", "-plist"]
+    logger.log("Executing: \(arguments.joined(separator: " "))", level: 3)
 
-    let plistData = try PlistHandler.extractFirstPlist(from: Data(result.stdout.utf8))
+    let result = try await Subprocess.run(
+      .path(FilePath(arguments[0])),
+      arguments: Arguments(Array(arguments.dropFirst())),
+      output: .string(limit: .max),
+      error: .string(limit: .max)
+    )
+
+    guard result.terminationStatus.isSuccess else {
+      throw QuickPkgError.dmgMountFailed(result.standardError ?? "hdiutil info failed")
+    }
+
+    let plistData = try PlistHandler.extractFirstPlist(from: Data((result.standardOutput ?? "").utf8))
     let info = try PlistHandler.parse(plistData)
 
     guard let images = info["images"] as? [[String: Any]] else {
@@ -93,14 +117,41 @@ actor DMGManager {
       "-nobrowse"
     ]
 
-    let result = try await executor.run(arguments, input: sla ? "Y\n" : nil)
+    logger.log("Executing: \(arguments.joined(separator: " "))", level: 3)
 
-    guard result.exitCode == 0 else {
-      throw QuickPkgError.dmgMountFailed("(\(result.exitCode)) \(result.stderr)")
+    let terminationStatus: TerminationStatus
+    let standardOutput: String?
+    let standardError: String?
+
+    if sla {
+      let result = try await Subprocess.run(
+        .path(FilePath(arguments[0])),
+        arguments: Arguments(Array(arguments.dropFirst())),
+        input: .string("Y\n"),
+        output: .string(limit: .max),
+        error: .string(limit: .max)
+      )
+      terminationStatus = result.terminationStatus
+      standardOutput = result.standardOutput
+      standardError = result.standardError
+    } else {
+      let result = try await Subprocess.run(
+        .path(FilePath(arguments[0])),
+        arguments: Arguments(Array(arguments.dropFirst())),
+        output: .string(limit: .max),
+        error: .string(limit: .max)
+      )
+      terminationStatus = result.terminationStatus
+      standardOutput = result.standardOutput
+      standardError = result.standardError
+    }
+
+    guard terminationStatus.isSuccess else {
+      throw QuickPkgError.dmgMountFailed(standardError ?? "hdiutil attach failed")
     }
 
     // Parse the plist output to get mount points
-    let plistData = try PlistHandler.extractFirstPlist(from: Data(result.stdout.utf8))
+    let plistData = try PlistHandler.extractFirstPlist(from: Data((standardOutput ?? "").utf8))
     let attachResult = try PlistHandler.parse(plistData)
 
     var mountPoints: [URL] = []
@@ -133,10 +184,18 @@ actor DMGManager {
 
     guard mountPoint.fileExists else { return }
 
-    let result = try await executor.run(["/usr/bin/hdiutil", "detach", mountPoint.path])
+    let arguments = ["/usr/bin/hdiutil", "detach", mountPoint.path]
+    logger.log("Executing: \(arguments.joined(separator: " "))", level: 3)
 
-    if result.exitCode != 0 {
-      logger.log("Warning: Failed to detach \(mountPoint.path): \(result.stderr)", level: 1)
+    let result = try await Subprocess.run(
+      .path(FilePath(arguments[0])),
+      arguments: Arguments(Array(arguments.dropFirst())),
+      output: .string(limit: .max),
+      error: .string(limit: .max)
+    )
+
+    if !result.terminationStatus.isSuccess {
+      logger.log("Warning: Failed to detach \(mountPoint.path): \(result.standardError ?? "")", level: 1)
     } else {
       logger.log("Detached: \(mountPoint.path)", level: 2)
     }

@@ -105,9 +105,8 @@ struct QuickPkg: AsyncParsableCommand {
       }
     }
 
-    let executor = ShellExecutor(logger: logger)
-    let dmgManager = DMGManager(executor: executor, logger: logger)
-    let archiveExtractor = ArchiveExtractor(executor: executor, logger: logger)
+    let dmgManager = DMGManager(logger: logger)
+    let archiveExtractor = ArchiveExtractor(logger: logger)
 
     // Capture clean flag for use in async cleanup
     let shouldClean = clean
@@ -149,7 +148,7 @@ struct QuickPkg: AsyncParsableCommand {
     let scriptsDir = try prepareScripts(tempDir: tempDir, logger: logger)
 
     // Build the package
-    let packageBuilder = PackageBuilder(executor: executor, logger: logger)
+    let packageBuilder = PackageBuilder(logger: logger)
     let outputPath = determineOutputPath(
       output: output,
       name: metadata.name,
