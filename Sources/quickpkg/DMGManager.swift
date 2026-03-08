@@ -20,7 +20,7 @@ actor DMGManager {
   func hasSLA(at path: URL) async throws -> Bool {
     let command: FilePath = "/usr/bin/hdiutil"
     let arguments: Arguments = ["imageinfo", path.path, "-plist"]
-    logger.log("Executing: \(command) \(arguments)", level: 3)
+    logger.log("Executing: \(command) \(arguments)", level: 2)
 
     let result = try await Subprocess.run(
       .path(command),
@@ -45,7 +45,7 @@ actor DMGManager {
   func existingMountPoints(for dmgPath: URL) async throws -> [URL]? {
     let command: FilePath = "/usr/bin/hdiutil"
     let arguments: Arguments = ["info", "-plist"]
-    logger.log("Executing: \(command) \(arguments)", level: 3)
+    logger.log("Executing: \(command) \(arguments)", level: 2)
 
     let result = try await Subprocess.run(
       .path(command),
@@ -120,7 +120,7 @@ actor DMGManager {
     ]
     let input: InputProtocol = sla ? .string("Y\n") : .none
 
-    logger.log("Executing: \(command) \(arguments)", level: 3)
+    logger.log("Executing: \(command) \(arguments)", level: 2)
 
     let result = try await Subprocess.run(
       .path(command),
@@ -162,7 +162,7 @@ actor DMGManager {
   func detach(_ mountPoint: URL) async throws {
     // Don't detach if it was already mounted before we started
     if wasMounted[mountPoint] == true {
-      logger.log("Skipping detach for pre-mounted volume: \(mountPoint.path)", level: 2)
+      logger.log("Skipping detach for pre-mounted volume: \(mountPoint.path)", level: 1)
       return
     }
 
@@ -170,7 +170,7 @@ actor DMGManager {
 
     let command: FilePath = "/usr/bin/hdiutil"
     let arguments: Arguments = ["detach", mountPoint.path]
-    logger.log("Executing: \(command) \(arguments)", level: 3)
+    logger.log("Executing: \(command) \(arguments)", level: 2)
 
     let result = try await Subprocess.run(
       .path(command),
@@ -182,7 +182,7 @@ actor DMGManager {
     if !result.terminationStatus.isSuccess {
       logger.log("Warning: Failed to detach \(mountPoint.path): \(result.standardError ?? "")", level: 1)
     } else {
-      logger.log("Detached: \(mountPoint.path)", level: 2)
+      logger.log("Detached: \(mountPoint.path)", level: 1)
     }
 
     mountedVolumes.removeAll { $0 == mountPoint }

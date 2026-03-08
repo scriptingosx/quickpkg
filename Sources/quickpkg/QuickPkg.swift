@@ -79,7 +79,7 @@ struct QuickPkg: AsyncParsableCommand {
 
   // MARK: - Verbosity
 
-  @Flag(name: .shortAndLong, help: "Increase verbosity (-v, -vv, or -vvv)")
+  @Flag(name: .shortAndLong, help: "Increase verbosity (-v, -vv)")
   var verbose: Int
 
   // MARK: - Run
@@ -99,8 +99,10 @@ struct QuickPkg: AsyncParsableCommand {
 
     // Create temp directory for working files
     let tempDir = try TempDirectory()
+    logger.log("Created temp directory: \(tempDir.path.path)", level: 2)
     defer {
       if clean {
+        logger.log("Cleaning up temp directory", level: 2)
         tempDir.cleanup()
       }
     }
@@ -132,6 +134,7 @@ struct QuickPkg: AsyncParsableCommand {
     let payloadDir = tempDir.path.appendingPathComponent("payload")
     try FileManager.default.createDirectory(at: payloadDir, withIntermediateDirectories: true)
     let payloadAppURL = payloadDir.appendingPathComponent(appURL.lastPathComponent)
+    logger.log("Copying app to payload: \(payloadAppURL.path)", level: 2)
     try FileManager.default.copyItem(at: appURL, to: payloadAppURL)
 
     // Detach DMG now that we've copied the app
@@ -148,6 +151,7 @@ struct QuickPkg: AsyncParsableCommand {
     let scriptsDir = try prepareScripts(tempDir: tempDir, logger: logger)
 
     // Build the package
+    logger.log("Package type: \(packageType == .distribution ? "distribution" : "component")", level: 1)
     let packageBuilder = PackageBuilder(logger: logger)
     let outputPath = determineOutputPath(
       output: output,
@@ -155,6 +159,7 @@ struct QuickPkg: AsyncParsableCommand {
       version: metadata.version,
       identifier: metadata.identifier
     )
+    logger.log("Output path: \(outputPath)", level: 1)
 
     try await packageBuilder.build(
       payloadDir: payloadDir,
@@ -268,6 +273,7 @@ struct QuickPkg: AsyncParsableCommand {
         throw QuickPkgError.scriptNotFound(scriptsPath)
       }
       scriptsDir = scriptsURL
+      logger.log("Using scripts from: \(scriptsPath)", level: 1)
     }
 
     guard preinstall != nil || postinstall != nil else {

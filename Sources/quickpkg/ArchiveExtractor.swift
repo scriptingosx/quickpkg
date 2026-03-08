@@ -16,7 +16,7 @@ struct ArchiveExtractor: Sendable {
 
     let command: FilePath = "/usr/bin/unzip"
     let arguments: Arguments = ["-q", archivePath.path, "-d", destinationDir.path]
-    logger.log("Executing: \(command) \(arguments)", level: 3)
+    logger.log("Executing: \(command) \(arguments)", level: 2)
 
     let result = try await Subprocess.run(
       .path(command),
@@ -28,6 +28,7 @@ struct ArchiveExtractor: Sendable {
     guard result.terminationStatus.isSuccess else {
       throw QuickPkgError.archiveExtractionFailed(result.standardError ?? "unzip failed")
     }
+    logger.log("Zip extraction completed", level: 2)
   }
 
   /// Extract a xip archive to the specified directory
@@ -36,7 +37,7 @@ struct ArchiveExtractor: Sendable {
 
     let command: FilePath = "/usr/bin/xip"
     let arguments: Arguments = ["--expand", archivePath.path]
-    logger.log("Executing: \(command) \(arguments)", level: 3)
+    logger.log("Executing: \(command) \(arguments)", level: 2)
 
     // xip --expand extracts to the current directory, so we need to run it from the destination
     let result = try await Subprocess.run(
@@ -50,5 +51,6 @@ struct ArchiveExtractor: Sendable {
     guard result.terminationStatus.isSuccess else {
       throw QuickPkgError.archiveExtractionFailed(result.standardError ?? "xip failed")
     }
+    logger.log("Xip extraction completed", level: 2)
   }
 }

@@ -28,7 +28,7 @@ struct PackageBuilder: Sendable {
       outputPlist.path
     ]
 
-    logger.log("Executing: \(command) \(arguments)", level: 3)
+    logger.log("Executing: \(command) \(arguments)", level: 2)
 
     let result = try await Subprocess.run(
       .path(command),
@@ -40,6 +40,7 @@ struct PackageBuilder: Sendable {
     guard result.terminationStatus.isSuccess else {
       throw QuickPkgError.pkgbuildFailed(result.standardError ?? "pkgbuild --analyze failed")
     }
+    logger.log("Component plist analysis completed", level: 2)
   }
 
   /// Build the package
@@ -74,13 +75,14 @@ struct PackageBuilder: Sendable {
     // Modify relocatable setting if needed
     if !relocatable {
       try PlistHandler.setRelocatable(false, in: componentPlist)
+      logger.log("Setting package as non-relocatable", level: 1)
     }
 
     // Remove quarantine extended attributes from payload
     logger.log("Removing quarantine attributes from payload", level: 1)
     let xattrCommand: FilePath = "/usr/bin/xattr"
     let xattrArgs: Arguments = ["-dr", "com.apple.quarantine", payloadDir.path]
-    logger.log("Executing: \(xattrCommand) \(xattrArgs)", level: 3)
+    logger.log("Executing: \(xattrCommand) \(xattrArgs)", level: 2)
     _ = try await Subprocess.run(
       .path(xattrCommand),
       arguments: xattrArgs,
@@ -113,9 +115,11 @@ struct PackageBuilder: Sendable {
 
     if let ownership = ownership {
       pkgbuildArgs += ["--ownership", ownership.rawValue]
+      logger.log("Ownership: \(ownership.rawValue)", level: 1)
     }
 
     pkgbuildArgs += ["--compression", compression.rawValue]
+    logger.log("Compression: \(compression.rawValue)", level: 1)
 
     if let minOSVersion = minOSVersion {
       pkgbuildArgs += ["--min-os-version", minOSVersion]
@@ -126,6 +130,7 @@ struct PackageBuilder: Sendable {
     if packageType == .component {
       if let sign = sign {
         pkgbuildArgs += ["--sign", sign]
+        logger.log("Signing identity: \(sign)", level: 1)
       }
 
       if let keychain = keychain {
@@ -141,7 +146,7 @@ struct PackageBuilder: Sendable {
 
     logger.log("Building component package: \(pkgbuildOutput)", level: 1)
     let arguments = Arguments(pkgbuildArgs)
-    logger.log("Executing: \(pkgbuildCommand) \(arguments)", level: 3)
+    logger.log("Executing: \(pkgbuildCommand) \(arguments)", level: 2)
 
     let result = try await Subprocess.run(
       .path(pkgbuildCommand),
@@ -153,6 +158,7 @@ struct PackageBuilder: Sendable {
     guard result.terminationStatus.isSuccess else {
       throw QuickPkgError.pkgbuildFailed(result.standardError ?? "pkgbuild failed")
     }
+    logger.log("Component package built successfully", level: 2)
 
     // For distribution packages, run productbuild
     if packageType == .distribution {
@@ -201,7 +207,7 @@ struct PackageBuilder: Sendable {
 
     logger.log("Building distribution package: \(outputPath)", level: 1)
     let arguments = Arguments(productbuildArgs)
-    logger.log("Executing: \(command) \(arguments)", level: 3)
+    logger.log("Executing: \(command) \(arguments)", level: 2)
 
     let result = try await Subprocess.run(
       .path(command),
@@ -213,5 +219,6 @@ struct PackageBuilder: Sendable {
     guard result.terminationStatus.isSuccess else {
       throw QuickPkgError.pkgbuildFailed(result.standardError ?? "productbuild failed")
     }
+    logger.log("Distribution package built successfully", level: 2)
   }
 }

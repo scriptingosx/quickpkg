@@ -146,9 +146,9 @@ quickpkg ~/Downloads/Firefox.dmg --sign "Developer ID Installer: Your Name"
 
 ### Verbosity
 
-#### `-v`, `-vv`, `-vvv`
+#### `-v`, `-vv`
 
-Increase verbosity. Use `-v` for basic info, `-vv` for more detail, `-vvv` for full command output including all shell commands.
+Increase verbosity. Use `-v` for basic info, `-vv` for more detail, including all shell commands.
 
 ## Background
 
