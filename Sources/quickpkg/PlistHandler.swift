@@ -2,11 +2,7 @@ import Foundation
 
 struct PlistHandler: Sendable {
   /// Extract the first plist from mixed output (like hdiutil which returns text + plist)
-  static func extractFirstPlist(from data: Data) throws -> Data {
-    guard let string = String(data: data, encoding: .utf8) else {
-      throw QuickPkgError.plistParsingFailed("Invalid UTF-8 data")
-    }
-
+  static func extractFirstPlist(from string: String) throws -> Data {
     let header = "<?xml version"
     let footer = "</plist>"
 

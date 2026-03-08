@@ -58,9 +58,9 @@ actor DMGManager {
       throw QuickPkgError.dmgMountFailed(result.standardError ?? "hdiutil info failed")
     }
 
-    let plistData = try PlistHandler.extractFirstPlist(from: Data((result.standardOutput ?? "").utf8))
+    let plistData = try PlistHandler.extractFirstPlist(from: result.standardOutput ?? "")
     let info = try PlistHandler.parse(plistData)
-
+    
     guard let images = info["images"] as? [[String: Any]] else {
       return nil
     }
@@ -118,42 +118,24 @@ actor DMGManager {
       "-plist",
       "-nobrowse"
     ]
+    let input: InputProtocol = sla ? .string("Y\n") : .none
 
     logger.log("Executing: \(command) \(arguments)", level: 3)
 
-    let terminationStatus: TerminationStatus
-    let standardOutput: String?
-    let standardError: String?
-
-    if sla {
-      let result = try await Subprocess.run(
-        .path(command),
-        arguments: arguments,
-        input: .string("Y\n"),
-        output: .string(limit: .max),
-        error: .string(limit: .max)
-      )
-      terminationStatus = result.terminationStatus
-      standardOutput = result.standardOutput
-      standardError = result.standardError
-    } else {
-      let result = try await Subprocess.run(
-        .path(command),
-        arguments: arguments,
-        output: .string(limit: .max),
-        error: .string(limit: .max)
-      )
-      terminationStatus = result.terminationStatus
-      standardOutput = result.standardOutput
-      standardError = result.standardError
-    }
-
-    guard terminationStatus.isSuccess else {
-      throw QuickPkgError.dmgMountFailed(standardError ?? "hdiutil attach failed")
+    let result = try await Subprocess.run(
+      .path(command),
+      arguments: arguments,
+      input: input,
+      output: .string(limit: .max),
+      error: .string(limit: .max)
+    )
+    
+    guard result.terminationStatus.isSuccess else {
+      throw QuickPkgError.dmgMountFailed(result.standardError ?? "hdiutil attach failed")
     }
 
     // Parse the plist output to get mount points
-    let plistData = try PlistHandler.extractFirstPlist(from: Data((standardOutput ?? "").utf8))
+    let plistData = try PlistHandler.extractFirstPlist(from: result.standardOutput ?? "")
     let attachResult = try PlistHandler.parse(plistData)
 
     var mountPoints: [URL] = []
