@@ -1,7 +1,7 @@
 import ArgumentParser
 import Foundation
 
-let quickpkgVersion = "2.0.0"
+let quickpkgVersion = "2.0.1"
 
 @main
 struct QuickPkg: AsyncParsableCommand {
