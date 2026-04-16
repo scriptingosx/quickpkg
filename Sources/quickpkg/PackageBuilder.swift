@@ -118,12 +118,13 @@ struct PackageBuilder: Sendable {
       logger.log("Ownership: \(ownership.rawValue)", level: 1)
     }
 
-    pkgbuildArgs += ["--compression", compression.rawValue]
-    logger.log("Compression: \(compression.rawValue)", level: 1)
-
     if let minOSVersion = minOSVersion {
       pkgbuildArgs += ["--min-os-version", minOSVersion]
       logger.log("Minimum OS version: \(minOSVersion)", level: 1)
+      
+      // compression requires --min-os-version to be set
+      pkgbuildArgs += ["--compression", compression.rawValue]
+      logger.log("Compression: \(compression.rawValue)", level: 1)
     }
 
     // Only sign with pkgbuild for component packages
