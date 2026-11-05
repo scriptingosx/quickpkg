@@ -1,5 +1,11 @@
 # Change Log – utiluti
 
+## v2.1
+
+(2026-11-xx)
+
+- added support for archiveutil/aea
+- updated dependecies: swift-argument-parser 1.8.2, swift-system 1.8.1, swift-subprocess 0.5.0
 ## v2.0.1
 
 (2026-03-13)
