@@ -1,7 +1,7 @@
 import ArgumentParser
 import Foundation
 
-let quickpkgVersion = "2.0.2"
+let quickpkgVersion = "2.1"
 
 @main
 struct QuickPkg: AsyncParsableCommand {
@@ -240,6 +240,9 @@ struct QuickPkg: AsyncParsableCommand {
     guard url.fileExists else {
       throw QuickPkgError.fileNotFound(url.path)
     }
+    
+    let extractDir = tempDir.path.appendingPathComponent("unarchive")
+    try FileManager.default.createDirectory(at: extractDir, withIntermediateDirectories: true)
 
     switch inputType {
     case .app:
@@ -250,15 +253,15 @@ struct QuickPkg: AsyncParsableCommand {
       return try validateSingleApplication(in: mountPoints)
 
     case .zip:
-      let extractDir = tempDir.path.appendingPathComponent("unarchive")
-      try FileManager.default.createDirectory(at: extractDir, withIntermediateDirectories: true)
       try await archiveExtractor.extractZip(url, to: extractDir)
       return try validateSingleApplication(in: [extractDir])
 
     case .xip:
-      let extractDir = tempDir.path.appendingPathComponent("unarchive")
-      try FileManager.default.createDirectory(at: extractDir, withIntermediateDirectories: true)
       try await archiveExtractor.extractXip(url, to: extractDir)
+      return try validateSingleApplication(in: [extractDir])
+    
+    case .aea:
+      try await archiveExtractor.extractAea(url, to: extractDir)
       return try validateSingleApplication(in: [extractDir])
     }
   }

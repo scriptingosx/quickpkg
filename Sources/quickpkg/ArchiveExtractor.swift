@@ -53,4 +53,27 @@ struct ArchiveExtractor: Sendable {
     }
     logger.log("Xip extraction completed", level: 2)
   }
+  
+  /// Extract an aea (Apple Archive) to the specified directory
+  func extractAea(_ archivePath: URL, to destinationDir: URL) async throws {
+    logger.log("Extracting aea: \(archivePath.path) to \(destinationDir.path)", level: 1)
+    
+    let command: FilePath = "/usr/bin/archiveutil"
+    let arguments: Arguments = ["extractXcodeAEA", archivePath.path]
+    logger.log("Executing: \(command) \(arguments)", level: 2)
+    
+    // archiveutil extracts to the current directory, so we need to run it from the destination
+    let result = try await Subprocess.run(
+      .path(command),
+      arguments: arguments,
+      workingDirectory: FilePath(destinationDir.path),
+      output: .string(limit: .max),
+      error: .string(limit: .max)
+    )
+    
+    guard result.terminationStatus.isSuccess else {
+      throw QuickPkgError.archiveExtractionFailed(result.standardError ?? "archiveutil failed")
+    }
+    logger.log("aea extraction completed", level: 2)
+  }
 }
