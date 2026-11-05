@@ -79,7 +79,7 @@ if [[ ! -d $build_dir ]]; then
     exit 3
 fi
 
-binary_source_path="${build_dir}/apple/Products/Release/${binary_names[1]}"
+binary_source_path="${build_dir}/out/Products/Release/${binary_names[1]}"
 
 if [[ ! -e $binary_source_path ]]; then
     echo "cannot find binary at $binary_source_path"
@@ -129,7 +129,7 @@ mkdir -p $manpage_location
 # copy and sign the binaries
 
 for binary in ${binary_names}; do
-  binary_source_path="${build_dir}/apple/Products/Release/${binary}"
+  binary_source_path="${build_dir}/out/Products/Release/${binary}"
 
   if [[ ! -f $binary_source_path ]]; then
       echo "can't find binary at $binary_source_path"
@@ -147,6 +147,7 @@ for binary in ${binary_names}; do
            --options runtime \
            --runtime-version $min_os_version \
            --timestamp \
+           -fv \
            $binary_path
   then
       echo "error signing binary '${binary}'"
