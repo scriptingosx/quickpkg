@@ -26,7 +26,7 @@ struct ArchiveExtractor: Sendable {
     )
 
     guard result.terminationStatus.isSuccess else {
-      throw QuickPkgError.archiveExtractionFailed(result.standardError ?? "unzip failed")
+      throw QuickPkgError.archiveExtractionFailed(result.standardError )
     }
     logger.log("Zip extraction completed", level: 2)
   }
@@ -49,7 +49,7 @@ struct ArchiveExtractor: Sendable {
     )
 
     guard result.terminationStatus.isSuccess else {
-      throw QuickPkgError.archiveExtractionFailed(result.standardError ?? "xip failed")
+      throw QuickPkgError.archiveExtractionFailed(result.standardError)
     }
     logger.log("Xip extraction completed", level: 2)
   }
@@ -72,7 +72,7 @@ struct ArchiveExtractor: Sendable {
     )
     
     guard result.terminationStatus.isSuccess else {
-      throw QuickPkgError.archiveExtractionFailed(result.standardError ?? "archiveutil failed")
+      throw QuickPkgError.archiveExtractionFailed(result.standardError)
     }
     logger.log("aea extraction completed", level: 2)
   }

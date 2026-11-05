@@ -30,10 +30,10 @@ actor DMGManager {
     )
 
     guard result.terminationStatus.isSuccess else {
-      throw QuickPkgError.dmgMountFailed(result.standardError ?? "hdiutil imageinfo failed")
+      throw QuickPkgError.dmgMountFailed(result.standardError)
     }
 
-    let plist = try PlistHandler.parse(Data((result.standardOutput ?? "").utf8))
+    let plist = try PlistHandler.parse(Data((result.standardOutput).utf8))
     if let properties = plist["Properties"] as? [String: Any],
        let hasSLA = properties["Software License Agreement"] as? Bool {
       return hasSLA
@@ -55,10 +55,10 @@ actor DMGManager {
     )
 
     guard result.terminationStatus.isSuccess else {
-      throw QuickPkgError.dmgMountFailed(result.standardError ?? "hdiutil info failed")
+      throw QuickPkgError.dmgMountFailed(result.standardError)
     }
 
-    let plistData = try PlistHandler.extractFirstPlist(from: result.standardOutput ?? "")
+    let plistData = try PlistHandler.extractFirstPlist(from: result.standardOutput)
     let info = try PlistHandler.parse(plistData)
     
     guard let images = info["images"] as? [[String: Any]] else {
@@ -131,11 +131,11 @@ actor DMGManager {
     )
     
     guard result.terminationStatus.isSuccess else {
-      throw QuickPkgError.dmgMountFailed(result.standardError ?? "hdiutil attach failed")
+      throw QuickPkgError.dmgMountFailed(result.standardError)
     }
 
     // Parse the plist output to get mount points
-    let plistData = try PlistHandler.extractFirstPlist(from: result.standardOutput ?? "")
+    let plistData = try PlistHandler.extractFirstPlist(from: result.standardOutput)
     let attachResult = try PlistHandler.parse(plistData)
 
     var mountPoints: [URL] = []
@@ -180,7 +180,7 @@ actor DMGManager {
     )
 
     if !result.terminationStatus.isSuccess {
-      logger.log("Warning: Failed to detach \(mountPoint.path): \(result.standardError ?? "")", level: 1)
+      logger.log("Warning: Failed to detach \(mountPoint.path): \(result.standardError)", level: 1)
     } else {
       logger.log("Detached: \(mountPoint.path)", level: 1)
     }

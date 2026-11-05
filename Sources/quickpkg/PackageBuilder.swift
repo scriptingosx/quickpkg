@@ -38,7 +38,7 @@ struct PackageBuilder: Sendable {
     )
 
     guard result.terminationStatus.isSuccess else {
-      throw QuickPkgError.pkgbuildFailed(result.standardError ?? "pkgbuild --analyze failed")
+      throw QuickPkgError.pkgbuildFailed(result.standardError)
     }
     logger.log("Component plist analysis completed", level: 2)
   }
@@ -157,7 +157,7 @@ struct PackageBuilder: Sendable {
     )
 
     guard result.terminationStatus.isSuccess else {
-      throw QuickPkgError.pkgbuildFailed(result.standardError ?? "pkgbuild failed")
+      throw QuickPkgError.pkgbuildFailed(result.standardError)
     }
     logger.log("Component package built successfully", level: 2)
 
@@ -218,7 +218,7 @@ struct PackageBuilder: Sendable {
     )
 
     guard result.terminationStatus.isSuccess else {
-      throw QuickPkgError.pkgbuildFailed(result.standardError ?? "productbuild failed")
+      throw QuickPkgError.pkgbuildFailed(result.standardError)
     }
     logger.log("Distribution package built successfully", level: 2)
   }

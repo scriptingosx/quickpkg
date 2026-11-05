@@ -6,7 +6,7 @@ let package = Package(
     platforms: [.macOS(.v15)],
     dependencies: [
         .package(url: "https://github.com/apple/swift-argument-parser", from: "1.7.1"),
-        .package(url: "https://github.com/swiftlang/swift-subprocess", from: "0.4.0"),
+        .package(url: "https://github.com/swiftlang/swift-subprocess", from: "1.0.0"),
     ],
     targets: [
         .executableTarget(
