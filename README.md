@@ -38,6 +38,12 @@ Build package from an xip archive:
 quickpkg ~/Downloads/Xcode.xip
 ```
 
+Build package from an aea archive:
+
+```
+quickpkg ~/Downloads/Xcode27_3beta.aea
+```
+
 Build a signed distribution package:
 
 ```
@@ -172,7 +178,7 @@ However, `pkgbuild` does not automatically create the pkg's filename, determine 
 
 ## A Note on Notarization
 
-`quickpkg` does not support notarization. Apple's notarization process requires that the application inside the package is signed with the same Developer ID as the package itself. Since `quickpkg` is designed to repackage third-party applications that you don't control the code signing for, notarization is not recommended or possible for packages created with this tool.
+`quickpkg` does not support notarization. Apple's notarization process requires that the application inside the package is signed with the same Developer ID as the package itself. Since `quickpkg` is designed to repackage third-party applications that you don't control the code signing for, notarization is not recommended for packages created with this tool.
 
 ## Warning
 
