@@ -1,8 +1,8 @@
-# Change Log – utiluti
+# Change Log – quickpkg
 
 ## v2.1
 
-(2026-11-xx)
+(2026-11-06)
 
 - added support for archiveutil/aea
 - updated dependecies: swift-argument-parser 1.8.2, swift-system 1.8.1, swift-subprocess 1.0.2
